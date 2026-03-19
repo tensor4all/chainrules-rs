@@ -1,7 +1,11 @@
 # chainrules-rs
 
-`chainrules-rs` is the engine-independent part of the tensor4all automatic
-differentiation stack.
+`chainrules-rs` is an engine-independent automatic-differentiation traits and
+rules library.
+
+It originated in the tensor4all stack, but it is designed to be reusable from
+any Rust project that wants differentiation rules without committing to a
+specific AD engine.
 
 It contains:
 
