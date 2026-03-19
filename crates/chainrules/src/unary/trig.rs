@@ -1,4 +1,4 @@
-use crate::unary::{neg_one, one};
+use crate::unary::one;
 use crate::ScalarAd;
 
 /// Primal `sin`.
@@ -25,12 +25,12 @@ pub fn cos<S: ScalarAd>(x: S) -> S {
 /// Forward rule for `cos`.
 pub fn cos_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = x.cos();
-    (y, dx * (neg_one::<S>() * x.sin()).conj())
+    (y, dx * (-x.sin()).conj())
 }
 
 /// Reverse rule for `cos`.
 pub fn cos_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
-    cotangent * (neg_one::<S>() * x.sin()).conj()
+    cotangent * (-x.sin()).conj()
 }
 
 fn inverse_sqrt_one_minus_square<S: ScalarAd>(x: S) -> S {
@@ -62,13 +62,13 @@ pub fn acos<S: ScalarAd>(x: S) -> S {
 /// Forward rule for `acos`.
 pub fn acos_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = x.acos();
-    let scale = neg_one::<S>() * inverse_sqrt_one_minus_square(x);
+    let scale = -inverse_sqrt_one_minus_square(x);
     (y, dx * scale.conj())
 }
 
 /// Reverse rule for `acos`.
 pub fn acos_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
-    cotangent * (neg_one::<S>() * inverse_sqrt_one_minus_square(x)).conj()
+    cotangent * (-inverse_sqrt_one_minus_square(x)).conj()
 }
 
 /// Primal `atan`.

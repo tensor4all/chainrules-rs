@@ -91,7 +91,7 @@ pub fn sub_frule<S: ScalarAd>(x: S, y: S, dx: S, dy: S) -> (S, S) {
 /// assert_eq!(dy, -2.0_f64);
 /// ```
 pub fn sub_rrule<S: ScalarAd>(cotangent: S) -> (S, S) {
-    (cotangent, S::from_i32(-1) * cotangent)
+    (cotangent, -cotangent)
 }
 
 /// Primal `mul`.
@@ -176,7 +176,7 @@ pub fn div_frule<S: ScalarAd>(x: S, y: S, dx: S, dy: S) -> (S, S) {
     let primal = x / y;
     let inv_y = S::from_i32(1) / y;
     let dfdx = inv_y.conj();
-    let dfdy = (S::from_i32(-1) * x * inv_y * inv_y).conj();
+    let dfdy = (-(x * inv_y * inv_y)).conj();
     let tangent = dx * dfdx + dy * dfdy;
     (primal, tangent)
 }
@@ -200,6 +200,6 @@ pub fn div_frule<S: ScalarAd>(x: S, y: S, dx: S, dy: S) -> (S, S) {
 pub fn div_rrule<S: ScalarAd>(x: S, y: S, cotangent: S) -> (S, S) {
     let inv_y = S::from_i32(1) / y;
     let dfdx = inv_y.conj();
-    let dfdy = (S::from_i32(-1) * x * inv_y * inv_y).conj();
+    let dfdy = (-(x * inv_y * inv_y)).conj();
     (cotangent * dfdx, cotangent * dfdy)
 }

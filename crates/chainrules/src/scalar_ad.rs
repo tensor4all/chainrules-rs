@@ -1,4 +1,4 @@
-use core::ops::{Add, Div, Mul, Sub};
+use core::ops::{Add, Div, Mul, Neg, Sub};
 
 use num_complex::{Complex32, Complex64};
 use num_traits::Float;
@@ -16,7 +16,13 @@ use num_traits::Float;
 /// takes_scalar(1.0_f64);
 /// ```
 pub trait ScalarAd:
-    Copy + PartialEq + Add<Output = Self> + Sub<Output = Self> + Mul<Output = Self> + Div<Output = Self>
+    Copy
+    + PartialEq
+    + Neg<Output = Self>
+    + Add<Output = Self>
+    + Sub<Output = Self>
+    + Mul<Output = Self>
+    + Div<Output = Self>
 {
     /// Real exponent type for `powf`.
     type Real: Copy + Float;
