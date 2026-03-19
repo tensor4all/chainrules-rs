@@ -34,6 +34,11 @@
 //! assert_eq!(dx, 12.0);
 //! ```
 
+pub use chainrules_core::{
+    AdResult, AutodiffError, Differentiable, ForwardRule, NodeId, PullbackEntry,
+    PullbackWithTangentsEntry, ReverseRule, SavePolicy,
+};
+
 mod binary;
 mod power;
 mod real_ops;

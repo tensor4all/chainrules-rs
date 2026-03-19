@@ -9,10 +9,6 @@ fn one<S: ScalarAd>() -> S {
     S::from_i32(1)
 }
 
-fn neg_one<S: ScalarAd>() -> S {
-    S::from_i32(-1)
-}
-
 pub use basic::{conj, conj_frule, conj_rrule, sqrt, sqrt_frule, sqrt_rrule};
 pub use exp_log::{
     exp, exp_frule, exp_rrule, expm1, expm1_frule, expm1_rrule, log, log1p, log1p_frule,
