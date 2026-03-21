@@ -1,8 +1,8 @@
 use chainrules::{
-    cosd, cosd_frule, cosd_rrule, cospi, cospi_frule, cospi_rrule, cot, cot_frule, cot_rrule, csc,
-    csc_frule, csc_rrule, csch, csch_frule, csch_rrule, sec, sec_frule, sec_rrule, sech,
-    sech_frule, sech_rrule, sincospi, sincospi_frule, sincospi_rrule, sind, sind_frule, sind_rrule,
-    sinpi, sinpi_frule, sinpi_rrule, tand, tand_frule, tand_rrule,
+    cosd, cosd_frule, cosd_rrule, cospi, cospi_frule, cospi_rrule, cot, cot_frule, cot_rrule, coth,
+    coth_frule, coth_rrule, csc, csc_frule, csc_rrule, csch, csch_frule, csch_rrule, sec,
+    sec_frule, sec_rrule, sech, sech_frule, sech_rrule, sincospi, sincospi_frule, sincospi_rrule,
+    sind, sind_frule, sind_rrule, sinpi, sinpi_frule, sinpi_rrule, tand, tand_frule, tand_rrule,
 };
 
 #[test]
@@ -21,6 +21,7 @@ fn julia_compat_primal_helpers_match_expected_values() {
     assert!((tand(45.0_f64) - 1.0_f64).abs() < 1e-12);
     assert!((sech(x) - (1.0 / x.cosh())).abs() < 1e-12);
     assert!((csch(x) - (1.0 / x.sinh())).abs() < 1e-12);
+    assert!((coth(x) - (1.0 / x.tanh())).abs() < 1e-12);
 }
 
 #[test]
@@ -59,6 +60,10 @@ fn julia_compat_derivative_helpers_match_expected_values() {
     let csch_x: f64 = 1.0 / x.sinh();
     assert!((dcsch - (-csch_x * x.cosh() / x.sinh())).abs() < 1e-12);
     assert!((csch_rrule(x, g) - (-csch_x * x.cosh() / x.sinh())).abs() < 1e-12);
+
+    let (_, dcoth) = coth_frule(x, g);
+    assert!((dcoth - (-(1.0 / x.sinh().powi(2)))).abs() < 1e-12);
+    assert!((coth_rrule(x, g) - (-(1.0 / x.sinh().powi(2)))).abs() < 1e-12);
 
     let (_, dsind) = sind_frule(30.0_f64, g);
     assert!((dsind - (std::f64::consts::PI / 180.0 * (30.0_f64.to_radians()).cos())).abs() < 1e-12);
