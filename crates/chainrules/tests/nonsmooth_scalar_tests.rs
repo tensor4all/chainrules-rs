@@ -44,6 +44,8 @@ where
     let y = cast::<T>(-2.4_f32);
     let zero = cast::<T>(0.0_f32);
     let neg_zero = cast::<T>(-0.0_f32);
+    let inf = T::infinity();
+    let neg_inf = T::neg_infinity();
 
     assert_close(round(x), cast::<T>(2.0_f32));
     assert_close(floor(x), cast::<T>(1.0_f32));
@@ -51,6 +53,8 @@ where
     assert_close(sign(y), cast::<T>(-1.0_f32));
     assert_zero(sign(zero));
     assert_negative_zero(sign(neg_zero));
+    assert_close(sign(inf), T::one());
+    assert_close(sign(neg_inf), -T::one());
 
     let (round_y, round_dy) = round_frule(x, cast::<T>(7.0_f32));
     assert_close(round_y, cast::<T>(2.0_f32));
@@ -98,6 +102,23 @@ where
     let (min_dx, min_dy) = min_rrule(cast::<T>(2.0_f32), cast::<T>(3.0_f32), cast::<T>(5.0_f32));
     assert_close(min_dx, cast::<T>(5.0_f32));
     assert_zero(min_dy);
+    let (min_tie_y, min_tie_dy) = min_frule(neg_zero, zero, cast::<T>(4.0_f32), cast::<T>(8.0_f32));
+    assert_zero(min_tie_y);
+    assert_close(min_tie_dy, cast::<T>(8.0_f32));
+    let (min_dx, min_dy) = min_rrule(neg_zero, zero, cast::<T>(5.0_f32));
+    assert_zero(min_dx);
+    assert_close(min_dy, cast::<T>(5.0_f32));
+    let (min_nan_y, min_nan_dy) = min_frule(
+        cast::<T>(2.0_f32),
+        T::nan(),
+        cast::<T>(6.0_f32),
+        cast::<T>(9.0_f32),
+    );
+    assert_close(min_nan_y, cast::<T>(2.0_f32));
+    assert_close(min_nan_dy, cast::<T>(6.0_f32));
+    let (min_dx, min_dy) = min_rrule(cast::<T>(2.0_f32), T::nan(), cast::<T>(5.0_f32));
+    assert_close(min_dx, cast::<T>(5.0_f32));
+    assert_zero(min_dy);
 
     let (max_y, max_dy) = max_frule(
         cast::<T>(1.0_f32),
@@ -123,6 +144,23 @@ where
     assert_zero(max_dx);
     assert_close(max_dy, cast::<T>(6.0_f32));
     let (max_dx, max_dy) = max_rrule(cast::<T>(2.0_f32), cast::<T>(3.0_f32), cast::<T>(5.0_f32));
+    assert_zero(max_dx);
+    assert_close(max_dy, cast::<T>(5.0_f32));
+    let (max_tie_y, max_tie_dy) = max_frule(neg_zero, zero, cast::<T>(4.0_f32), cast::<T>(8.0_f32));
+    assert_zero(max_tie_y);
+    assert_close(max_tie_dy, cast::<T>(8.0_f32));
+    let (max_dx, max_dy) = max_rrule(neg_zero, zero, cast::<T>(5.0_f32));
+    assert_zero(max_dx);
+    assert_close(max_dy, cast::<T>(5.0_f32));
+    let (max_nan_y, max_nan_dy) = max_frule(
+        T::nan(),
+        cast::<T>(3.0_f32),
+        cast::<T>(6.0_f32),
+        cast::<T>(9.0_f32),
+    );
+    assert_close(max_nan_y, cast::<T>(3.0_f32));
+    assert_close(max_nan_dy, cast::<T>(9.0_f32));
+    let (max_dx, max_dy) = max_rrule(T::nan(), cast::<T>(3.0_f32), cast::<T>(5.0_f32));
     assert_zero(max_dx);
     assert_close(max_dy, cast::<T>(5.0_f32));
 }

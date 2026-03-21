@@ -11,6 +11,11 @@ fn assert_line_count(path: &str, content: &str, max_lines: usize) {
 fn chainrules_modules_stay_under_size_guideline() {
     assert_line_count("../lib.rs", include_str!("../lib.rs"), 120);
     assert_line_count("../binary.rs", include_str!("../binary.rs"), 260);
+    assert_line_count(
+        "../binary_special.rs",
+        include_str!("../binary_special.rs"),
+        220,
+    );
     assert_line_count("../unary/mod.rs", include_str!("../unary/mod.rs"), 80);
     assert_line_count("../unary/basic.rs", include_str!("../unary/basic.rs"), 80);
     assert_line_count(
@@ -33,6 +38,11 @@ fn chainrules_modules_stay_under_size_guideline() {
         "../unary/hyperbolic_extra.rs",
         include_str!("../unary/hyperbolic_extra.rs"),
         180,
+    );
+    assert_line_count(
+        "../unary/nonsmooth.rs",
+        include_str!("../unary/nonsmooth.rs"),
+        220,
     );
     assert_line_count(
         "../unary/smooth.rs",

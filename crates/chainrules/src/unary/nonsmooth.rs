@@ -148,7 +148,8 @@ pub fn ceil_rrule<R: Float>(_x: R, _cotangent: R) -> R {
 /// Primal `sign`.
 ///
 /// The primal follows Julia-style `sign`: it returns signed zero for zero
-/// inputs and otherwise `x / abs(x)`.
+/// inputs, `+1`/`-1` for positive/negative infinities, and `x.signum()`
+/// otherwise.
 ///
 /// The corresponding forward and reverse rules use a zero-gradient policy at
 /// every point.
@@ -166,7 +167,7 @@ pub fn sign<R: Float>(x: R) -> R {
     if x == R::zero() {
         x
     } else {
-        x / x.abs()
+        x.signum()
     }
 }
 

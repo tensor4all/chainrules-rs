@@ -32,6 +32,7 @@ Current shipped scalar families:
 - hyperbolic: `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`
 - Julia-compatible trigonometric helpers: `sec`, `csc`, `cot`, `sinpi`, `cospi`, `sincospi`, `sind`, `cosd`, `tand`
 - Julia-compatible hyperbolic helpers: `sech`, `csch`, `coth`
+- non-smooth real helpers: `round`, `floor`, `ceil`, `sign`, `min`, `max`
 - smooth helpers: `cbrt`, `inv`, `exp2`, `exp10`, `log2`, `log10`, `hypot`, `pow`, `sincos`, `tan`
 - complex and projection helpers: `conj`, `abs`, `abs2`, `angle`, `real`, `imag`, `complex`, `handle_r_to_c_f32`, `handle_r_to_c_f64`
 - real-valued binary helpers: `atan2`
@@ -49,6 +50,8 @@ repository-local tests:
   real/complex behavior
 - `tests/julia_compat_trig_tests.rs` covers Julia migration helpers, including
   landmark real inputs and representative Complex64 behavior
+- `tests/nonsmooth_scalar_tests.rs` covers the documented zero-gradient and
+  tie-routing policies for non-smooth helpers
 - `tests/complex_helper_tests.rs` covers the projection helpers and complex
   constructor surface
 - `tests/oracle_scalar_rules.rs` replays vendored published oracle cases from

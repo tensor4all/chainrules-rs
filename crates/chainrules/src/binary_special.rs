@@ -57,8 +57,9 @@ pub fn hypot_rrule<R: Float>(x: R, y: R, cotangent: R) -> (R, R) {
 
 /// Primal `min`.
 ///
-/// The primal follows `Float::min`; tie behavior routes the derivative to the
-/// second argument.
+/// The primal follows `Float::min`. For differentiation, ties route the
+/// tangent/cotangent to the second argument. If exactly one input is `NaN`,
+/// the non-`NaN` input receives the gradient.
 ///
 /// # Examples
 ///
@@ -96,7 +97,8 @@ pub fn min_frule<R: Float>(x: R, y: R, dx: R, dy: R) -> (R, R) {
 
 /// Reverse rule for `min`.
 ///
-/// When `x == y`, the cotangent goes to `y`.
+/// When `x == y`, the cotangent goes to `y`. If exactly one input is `NaN`,
+/// the non-`NaN` input receives the cotangent.
 ///
 /// # Examples
 ///
@@ -117,8 +119,9 @@ pub fn min_rrule<R: Float>(x: R, y: R, cotangent: R) -> (R, R) {
 
 /// Primal `max`.
 ///
-/// The primal follows `Float::max`; tie behavior routes the derivative to the
-/// second argument.
+/// The primal follows `Float::max`. For differentiation, ties route the
+/// tangent/cotangent to the second argument. If exactly one input is `NaN`,
+/// the non-`NaN` input receives the gradient.
 ///
 /// # Examples
 ///
@@ -156,7 +159,8 @@ pub fn max_frule<R: Float>(x: R, y: R, dx: R, dy: R) -> (R, R) {
 
 /// Reverse rule for `max`.
 ///
-/// When `x == y`, the cotangent goes to `y`.
+/// When `x == y`, the cotangent goes to `y`. If exactly one input is `NaN`,
+/// the non-`NaN` input receives the cotangent.
 ///
 /// # Examples
 ///
