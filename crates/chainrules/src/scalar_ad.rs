@@ -1,7 +1,7 @@
 use core::ops::{Add, Div, Mul, Neg, Sub};
 
-use num_complex::{Complex32, Complex64};
-use num_traits::Float;
+use num_complex::{Complex32, Complex64, ComplexFloat};
+use num_traits::{Float, FloatConst, Zero};
 
 /// Scalar trait used by elementary AD rule helpers.
 ///
@@ -25,16 +25,28 @@ pub trait ScalarAd:
     + Div<Output = Self>
 {
     /// Real exponent type for `powf`.
-    type Real: Copy + Float;
+    type Real: Copy + Float + FloatConst;
 
     /// Complex conjugate (identity for real scalars).
     fn conj(self) -> Self;
+
+    /// Reciprocal.
+    fn recip(self) -> Self;
+
+    /// Cubic root.
+    fn cbrt(self) -> Self;
 
     /// Square root.
     fn sqrt(self) -> Self;
 
     /// Exponential.
     fn exp(self) -> Self;
+
+    /// `2^self`.
+    fn exp2(self) -> Self;
+
+    /// `10^self`.
+    fn exp10(self) -> Self;
 
     /// `exp(self) - 1`.
     fn expm1(self) -> Self;
@@ -45,11 +57,20 @@ pub trait ScalarAd:
     /// `ln(1 + self)`.
     fn log1p(self) -> Self;
 
+    /// Base-2 logarithm.
+    fn log2(self) -> Self;
+
+    /// Base-10 logarithm.
+    fn log10(self) -> Self;
+
     /// Sine.
     fn sin(self) -> Self;
 
     /// Cosine.
     fn cos(self) -> Self;
+
+    /// Tangent.
+    fn tan(self) -> Self;
 
     /// Hyperbolic tangent.
     fn tanh(self) -> Self;
@@ -78,11 +99,29 @@ pub trait ScalarAd:
     /// Area hyperbolic tangent.
     fn atanh(self) -> Self;
 
+    /// Absolute value.
+    fn abs(self) -> Self::Real;
+
+    /// Absolute value squared.
+    fn abs2(self) -> Self::Real;
+
+    /// Real part.
+    fn real(self) -> Self::Real;
+
+    /// Imaginary part.
+    fn imag(self) -> Self::Real;
+
+    /// Polar angle.
+    fn angle(self) -> Self::Real;
+
     /// Power by real exponent.
     fn powf(self, exponent: Self::Real) -> Self;
 
     /// Power by integer exponent.
     fn powi(self, exponent: i32) -> Self;
+
+    /// Power by same-scalar exponent.
+    fn pow(self, exponent: Self) -> Self;
 
     /// Convert real scalar to this scalar type.
     fn from_real(value: Self::Real) -> Self;
@@ -100,76 +139,128 @@ macro_rules! impl_scalar_ad_real {
                 self
             }
 
+            fn recip(self) -> Self {
+                <$ty as Float>::recip(self)
+            }
+
+            fn cbrt(self) -> Self {
+                <$ty as Float>::cbrt(self)
+            }
+
             fn sqrt(self) -> Self {
-                <$ty>::sqrt(self)
+                <$ty as Float>::sqrt(self)
             }
 
             fn exp(self) -> Self {
-                <$ty>::exp(self)
+                <$ty as Float>::exp(self)
+            }
+
+            fn exp2(self) -> Self {
+                <$ty as Float>::exp2(self)
+            }
+
+            fn exp10(self) -> Self {
+                (<$ty as Float>::exp(self * <$ty as FloatConst>::LN_10()))
             }
 
             fn expm1(self) -> Self {
-                <$ty>::exp_m1(self)
+                <$ty as Float>::exp_m1(self)
             }
 
             fn ln(self) -> Self {
-                <$ty>::ln(self)
+                <$ty as Float>::ln(self)
             }
 
             fn log1p(self) -> Self {
-                <$ty>::ln_1p(self)
+                <$ty as Float>::ln_1p(self)
+            }
+
+            fn log2(self) -> Self {
+                <$ty as Float>::log2(self)
+            }
+
+            fn log10(self) -> Self {
+                <$ty as Float>::log10(self)
             }
 
             fn sin(self) -> Self {
-                <$ty>::sin(self)
+                <$ty as Float>::sin(self)
             }
 
             fn cos(self) -> Self {
-                <$ty>::cos(self)
+                <$ty as Float>::cos(self)
+            }
+
+            fn tan(self) -> Self {
+                <$ty as Float>::tan(self)
             }
 
             fn tanh(self) -> Self {
-                <$ty>::tanh(self)
+                <$ty as Float>::tanh(self)
             }
 
             fn asin(self) -> Self {
-                <$ty>::asin(self)
+                <$ty as Float>::asin(self)
             }
 
             fn acos(self) -> Self {
-                <$ty>::acos(self)
+                <$ty as Float>::acos(self)
             }
 
             fn atan(self) -> Self {
-                <$ty>::atan(self)
+                <$ty as Float>::atan(self)
             }
 
             fn sinh(self) -> Self {
-                <$ty>::sinh(self)
+                <$ty as Float>::sinh(self)
             }
 
             fn cosh(self) -> Self {
-                <$ty>::cosh(self)
+                <$ty as Float>::cosh(self)
             }
 
             fn asinh(self) -> Self {
-                <$ty>::asinh(self)
+                <$ty as Float>::asinh(self)
             }
 
             fn acosh(self) -> Self {
-                <$ty>::acosh(self)
+                <$ty as Float>::acosh(self)
             }
 
             fn atanh(self) -> Self {
-                <$ty>::atanh(self)
+                <$ty as Float>::atanh(self)
+            }
+
+            fn abs(self) -> Self::Real {
+                <$ty as Float>::abs(self)
+            }
+
+            fn abs2(self) -> Self::Real {
+                self * self
+            }
+
+            fn real(self) -> Self::Real {
+                self
+            }
+
+            fn imag(self) -> Self::Real {
+                <$ty as Zero>::zero()
+            }
+
+            fn angle(self) -> Self::Real {
+                <$ty as Float>::atan2(<$ty as Zero>::zero(), self)
             }
 
             fn powf(self, exponent: Self::Real) -> Self {
-                <$ty>::powf(self, exponent)
+                <$ty as Float>::powf(self, exponent)
             }
 
             fn powi(self, exponent: i32) -> Self {
-                <$ty>::powi(self, exponent)
+                <$ty as Float>::powi(self, exponent)
+            }
+
+            fn pow(self, exponent: Self) -> Self {
+                <$ty as Float>::powf(self, exponent)
             }
 
             fn from_real(value: Self::Real) -> Self {
@@ -192,76 +283,133 @@ macro_rules! impl_scalar_ad_complex {
                 <$complex_ty>::conj(&self)
             }
 
+            fn recip(self) -> Self {
+                <$complex_ty as ComplexFloat>::recip(self)
+            }
+
+            fn cbrt(self) -> Self {
+                <$complex_ty as ComplexFloat>::cbrt(self)
+            }
+
             fn sqrt(self) -> Self {
-                <$complex_ty>::sqrt(self)
+                <$complex_ty as ComplexFloat>::sqrt(self)
             }
 
             fn exp(self) -> Self {
-                <$complex_ty>::exp(self)
+                <$complex_ty as ComplexFloat>::exp(self)
+            }
+
+            fn exp2(self) -> Self {
+                <$complex_ty as ComplexFloat>::exp2(self)
+            }
+
+            fn exp10(self) -> Self {
+                (<$complex_ty as ComplexFloat>::exp(
+                    self * <$complex_ty>::new(
+                        <$real_ty as FloatConst>::LN_10(),
+                        <$real_ty as Zero>::zero(),
+                    ),
+                ))
             }
 
             fn expm1(self) -> Self {
-                <$complex_ty>::exp(self) - $one
+                <$complex_ty as ComplexFloat>::exp(self) - $one
             }
 
             fn ln(self) -> Self {
-                <$complex_ty>::ln(self)
+                <$complex_ty as ComplexFloat>::ln(self)
             }
 
             fn log1p(self) -> Self {
-                <$complex_ty>::ln(self + $one)
+                <$complex_ty as ComplexFloat>::ln(self + $one)
+            }
+
+            fn log2(self) -> Self {
+                <$complex_ty as ComplexFloat>::log2(self)
+            }
+
+            fn log10(self) -> Self {
+                <$complex_ty as ComplexFloat>::log10(self)
             }
 
             fn sin(self) -> Self {
-                <$complex_ty>::sin(self)
+                <$complex_ty as ComplexFloat>::sin(self)
             }
 
             fn cos(self) -> Self {
-                <$complex_ty>::cos(self)
+                <$complex_ty as ComplexFloat>::cos(self)
+            }
+
+            fn tan(self) -> Self {
+                <$complex_ty as ComplexFloat>::tan(self)
             }
 
             fn tanh(self) -> Self {
-                <$complex_ty>::tanh(self)
+                <$complex_ty as ComplexFloat>::tanh(self)
             }
 
             fn asin(self) -> Self {
-                <$complex_ty>::asin(self)
+                <$complex_ty as ComplexFloat>::asin(self)
             }
 
             fn acos(self) -> Self {
-                <$complex_ty>::acos(self)
+                <$complex_ty as ComplexFloat>::acos(self)
             }
 
             fn atan(self) -> Self {
-                <$complex_ty>::atan(self)
+                <$complex_ty as ComplexFloat>::atan(self)
             }
 
             fn sinh(self) -> Self {
-                <$complex_ty>::sinh(self)
+                <$complex_ty as ComplexFloat>::sinh(self)
             }
 
             fn cosh(self) -> Self {
-                <$complex_ty>::cosh(self)
+                <$complex_ty as ComplexFloat>::cosh(self)
             }
 
             fn asinh(self) -> Self {
-                <$complex_ty>::asinh(self)
+                <$complex_ty as ComplexFloat>::asinh(self)
             }
 
             fn acosh(self) -> Self {
-                <$complex_ty>::acosh(self)
+                <$complex_ty as ComplexFloat>::acosh(self)
             }
 
             fn atanh(self) -> Self {
-                <$complex_ty>::atanh(self)
+                <$complex_ty as ComplexFloat>::atanh(self)
+            }
+
+            fn abs(self) -> Self::Real {
+                <$complex_ty as ComplexFloat>::abs(self)
+            }
+
+            fn abs2(self) -> Self::Real {
+                <$complex_ty>::norm_sqr(&self)
+            }
+
+            fn real(self) -> Self::Real {
+                self.re
+            }
+
+            fn imag(self) -> Self::Real {
+                self.im
+            }
+
+            fn angle(self) -> Self::Real {
+                <$complex_ty as ComplexFloat>::arg(self)
             }
 
             fn powf(self, exponent: Self::Real) -> Self {
-                <$complex_ty>::powf(self, exponent)
+                <$complex_ty as ComplexFloat>::powf(self, exponent)
             }
 
             fn powi(self, exponent: i32) -> Self {
-                <$complex_ty>::powi(&self, exponent)
+                <$complex_ty as ComplexFloat>::powi(self, exponent)
+            }
+
+            fn pow(self, exponent: Self) -> Self {
+                <$complex_ty as ComplexFloat>::powc(self, exponent)
             }
 
             fn from_real(value: Self::Real) -> Self {

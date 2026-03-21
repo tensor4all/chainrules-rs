@@ -1,6 +1,7 @@
 mod basic;
 mod exp_log;
 mod hyperbolic;
+mod smooth;
 mod trig;
 
 use crate::ScalarAd;
@@ -19,6 +20,7 @@ pub use hyperbolic::{
     atanh_rrule, cosh, cosh_frule, cosh_rrule, sinh, sinh_frule, sinh_rrule, tanh, tanh_frule,
     tanh_rrule,
 };
+pub use smooth::{cbrt, exp2, hypot, log2, pow, tan};
 pub use trig::{
     acos, acos_frule, acos_rrule, asin, asin_frule, asin_rrule, atan, atan_frule, atan_rrule, cos,
     cos_frule, cos_rrule, sin, sin_frule, sin_rrule,

@@ -26,10 +26,10 @@ pub use scalar_ad::{handle_r_to_c_f32, handle_r_to_c_f64, ScalarAd};
 pub use unary::{
     acos, acos_frule, acos_rrule, acosh, acosh_frule, acosh_rrule, asin, asin_frule, asin_rrule,
     asinh, asinh_frule, asinh_rrule, atan, atan_frule, atan_rrule, atanh, atanh_frule, atanh_rrule,
-    conj, conj_frule, conj_rrule, cos, cos_frule, cos_rrule, cosh, cosh_frule, cosh_rrule, exp,
-    exp_frule, exp_rrule, expm1, expm1_frule, expm1_rrule, log, log1p, log1p_frule, log1p_rrule,
-    log_frule, log_rrule, sin, sin_frule, sin_rrule, sinh, sinh_frule, sinh_rrule, sqrt,
-    sqrt_frule, sqrt_rrule, tanh, tanh_frule, tanh_rrule,
+    cbrt, conj, conj_frule, conj_rrule, cos, cos_frule, cos_rrule, cosh, cosh_frule, cosh_rrule,
+    exp, exp2, exp_frule, exp_rrule, expm1, expm1_frule, expm1_rrule, hypot, log, log1p,
+    log1p_frule, log1p_rrule, log2, log_frule, log_rrule, pow, sin, sin_frule, sin_rrule, sinh,
+    sinh_frule, sinh_rrule, sqrt, sqrt_frule, sqrt_rrule, tan, tanh, tanh_frule, tanh_rrule,
 };
 
 #[cfg(test)]
