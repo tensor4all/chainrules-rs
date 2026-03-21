@@ -2,9 +2,11 @@ mod basic;
 mod complex_parts;
 mod exp_log;
 mod hyperbolic;
+mod hyperbolic_extra;
 mod roots;
 mod smooth;
 mod trig;
+mod trig_extra;
 
 use crate::ScalarAd;
 
@@ -27,6 +29,9 @@ pub use hyperbolic::{
     atanh_rrule, cosh, cosh_frule, cosh_rrule, sinh, sinh_frule, sinh_rrule, tanh, tanh_frule,
     tanh_rrule,
 };
+pub use hyperbolic_extra::{
+    coth, coth_frule, coth_rrule, csch, csch_frule, csch_rrule, sech, sech_frule, sech_rrule,
+};
 pub use roots::{cbrt, cbrt_frule, cbrt_rrule, inv, inv_frule, inv_rrule};
 pub use smooth::{
     hypot, hypot_frule, hypot_rrule, pow, pow_frule, pow_rrule, sincos, sincos_frule, sincos_rrule,
@@ -35,4 +40,9 @@ pub use smooth::{
 pub use trig::{
     acos, acos_frule, acos_rrule, asin, asin_frule, asin_rrule, atan, atan_frule, atan_rrule, cos,
     cos_frule, cos_rrule, sin, sin_frule, sin_rrule,
+};
+pub use trig_extra::{
+    cosd, cosd_frule, cosd_rrule, cospi, cospi_frule, cospi_rrule, cot, cot_frule, cot_rrule, csc,
+    csc_frule, csc_rrule, sec, sec_frule, sec_rrule, sincospi, sincospi_frule, sincospi_rrule,
+    sind, sind_frule, sind_rrule, sinpi, sinpi_frule, sinpi_rrule, tand, tand_frule, tand_rrule,
 };
