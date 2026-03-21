@@ -1,41 +1,5 @@
 #![doc = include_str!("../README.md")]
 
-//! Engine-independent scalar AD helper rules for elementary operations.
-//!
-//! This crate provides stateless primal/frule/rrule helpers for scalar
-//! operations. It is designed to be shared across AD engines and higher-level
-//! tensor libraries.
-//!
-//! Public helper families:
-//!
-//! - `add`, `sub`, `mul`, `div`
-//! - `conj`
-//! - `sqrt`
-//! - `exp`, `expm1`, `log`, `log1p`
-//! - `sin`, `cos`
-//! - `sinh`, `cosh`
-//! - `asin`, `acos`, `atan`, `asinh`, `acosh`, `atanh`
-//! - `powf` (fixed real exponent)
-//! - `powi` (fixed integer exponent)
-//! - `atan2` (real scalars)
-//!
-//! The [`ScalarAd`] trait also provides the scalar method basis used by the
-//! higher-level wrappers, including `expm1`, `log1p`, `sin`, `cos`, and
-//! `tanh`.
-//!
-//! # Examples
-//!
-//! ```rust
-//! use chainrules::{powf_frule, powf_rrule};
-//!
-//! let (y, dy) = powf_frule(2.0_f64, 3.0, 1.0);
-//! assert_eq!(y, 8.0);
-//! assert_eq!(dy, 12.0);
-//!
-//! let dx = powf_rrule(2.0_f64, 3.0, 1.0);
-//! assert_eq!(dx, 12.0);
-//! ```
-
 pub use chainrules_core::{
     AdResult, AutodiffError, Differentiable, ForwardRule, NodeId, PullbackEntry,
     PullbackWithTangentsEntry, ReverseRule, SavePolicy,

@@ -30,7 +30,7 @@ Current shipped scalar families:
 - exponentials and logs: `exp`, `expm1`, `log`, `log1p`
 - trigonometric: `sin`, `cos`, `asin`, `acos`, `atan`
 - hyperbolic: `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`
-- complex and projection helpers: `conj`, `handle_r_to_c`
+- complex and projection helpers: `conj`, `handle_r_to_c_f32`, `handle_r_to_c_f64`
 - real-valued binary helpers: `atan2`
 
 This crate is intended as a landing zone for scalar rules ported or adapted
