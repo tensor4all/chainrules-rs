@@ -24,7 +24,7 @@ pub use power::{powf, powf_frule, powf_rrule, powi, powi_frule, powi_rrule};
 #[doc(inline)]
 pub use real_ops::{atan2, atan2_frule, atan2_rrule};
 #[doc(inline)]
-pub use scalar_ad::{handle_r_to_c_f32, handle_r_to_c_f64, ScalarAd};
+pub use scalar_ad::ScalarAd;
 #[doc(inline)]
 pub use unary::{
     abs, abs2, abs2_frule, abs2_rrule, acos, acos_frule, acos_rrule, acosh, acosh_frule,

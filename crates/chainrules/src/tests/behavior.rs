@@ -4,10 +4,9 @@ use crate::{
     acos, acos_frule, acos_rrule, acosh, acosh_frule, acosh_rrule, asin, asin_frule, asin_rrule,
     asinh, asinh_frule, asinh_rrule, atan, atan2, atan2_frule, atan_frule, atan_rrule, atanh,
     atanh_frule, atanh_rrule, conj, conj_frule, conj_rrule, cos, cos_frule, cos_rrule, cosh,
-    cosh_frule, cosh_rrule, exp, exp_frule, exp_rrule, expm1_frule, expm1_rrule, handle_r_to_c_f32,
-    handle_r_to_c_f64, log, log1p_frule, log1p_rrule, log_frule, log_rrule, sin, sin_frule,
-    sin_rrule, sinh, sinh_frule, sinh_rrule, sqrt, sqrt_frule, sqrt_rrule, tanh, tanh_frule,
-    tanh_rrule, ScalarAd,
+    cosh_frule, cosh_rrule, exp, exp_frule, exp_rrule, expm1_frule, expm1_rrule, log, log1p_frule,
+    log1p_rrule, log_frule, log_rrule, sin, sin_frule, sin_rrule, sinh, sinh_frule, sinh_rrule,
+    sqrt, sqrt_frule, sqrt_rrule, tanh, tanh_frule, tanh_rrule, ScalarAd,
 };
 
 fn assert_close_f32(actual: f32, expected: f32) {
@@ -271,10 +270,7 @@ fn scalar_ad_complex_extended_surface_matches_std_complex_ops() {
 }
 
 #[test]
-fn direct_entrypoints_match_real_projection_and_atan2_formulas() {
-    assert_eq!(handle_r_to_c_f32(Complex32::new(2.0, -5.0)), 2.0);
-    assert_eq!(handle_r_to_c_f64(Complex64::new(-3.0, 1.5)), -3.0);
-
+fn direct_entrypoints_match_atan2_formulas() {
     let primal = atan2(3.0_f64, 4.0_f64);
     assert_close_f64(primal, 3.0_f64.atan2(4.0));
 

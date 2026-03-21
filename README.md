@@ -70,10 +70,10 @@ Scalar rules are checked in complementary ways:
   `crates/chainrules/tests/complex_helper_tests.rs`
 - oracle replay tests in `crates/chainrules/tests/oracle_scalar_rules.rs`
   against vendored published cases from `third_party/tensor-ad-oracles`,
-  including direct float64 replay and selected complex128 reverse-mode replay;
-  complex forward-mode checks stay in repository-local formula tests because the
-  crate's `frule` convention intentionally differs from the published JVP
-  convention
+  including direct float64 replay and selected direct Complex64 replay for
+  `tan`, `exp2`, and `log2`; complex
+  forward-mode checks use the standard JVP convention on `C ~= R^2`, while
+  complex reverse-mode checks remain conjugate-Wirtinger for real-valued losses
 
 ```bash
 cargo test --workspace --release

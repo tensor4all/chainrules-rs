@@ -34,12 +34,12 @@ Current shipped scalar families:
 - Julia-compatible hyperbolic helpers: `sech`, `csch`, `coth`
 - non-smooth real helpers: `round`, `floor`, `ceil`, `sign`, `min`, `max`
 - smooth helpers: `cbrt`, `inv`, `exp2`, `exp10`, `log2`, `log10`, `hypot`, `pow`, `sincos`, `tan`
-- complex and projection helpers: `conj`, `abs`, `abs2`, `angle`, `real`, `imag`, `complex`, `handle_r_to_c_f32`, `handle_r_to_c_f64`
+- complex and projection helpers: `conj`, `abs`, `abs2`, `angle`, `real`, `imag`, `complex`
 - real-valued binary helpers: `atan2`
 
-This crate is intended as a landing zone for scalar rules ported or adapted
-from Julia's `ChainRules.jl` where they fit this crate boundary, but it is not
-a full port of `ChainRules.jl`.
+This crate is a landing zone for scalar rules ported or adapted from Julia's
+`ChainRules.jl` where they fit this crate boundary, but it is not a full port
+of `ChainRules.jl`.
 
 ## Validation
 
@@ -56,9 +56,10 @@ repository-local tests:
   constructor surface
 - `tests/oracle_scalar_rules.rs` replays vendored published oracle cases from
   `../../third_party/tensor-ad-oracles`, with direct float64 replay and
-  selected Complex64 reverse-mode replay
-- complex forward-mode checks that follow this crate's `ScalarAd` convention
-  stay in repository-local formula tests such as `tests/smooth_basis_tests.rs`
+  selected direct Complex64 replay for `tan`, `exp2`, and `log2`
+- complex forward-mode checks use the standard JVP convention on `C ~= R^2`
+  in repository-local formula tests such as `tests/smooth_basis_tests.rs`
+- complex reverse-mode checks remain conjugate-Wirtinger for real-valued losses
 
 ## Examples
 

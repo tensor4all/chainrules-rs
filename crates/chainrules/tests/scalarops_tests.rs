@@ -1,17 +1,9 @@
 use chainrules::{
-    add, add_frule, add_rrule, conj, conj_frule, conj_rrule, div, div_frule, div_rrule,
-    handle_r_to_c_f32, handle_r_to_c_f64, mul, mul_frule, mul_rrule, powf, powf_frule, powf_rrule,
-    powi, powi_frule, powi_rrule, sqrt, sqrt_frule, sqrt_rrule, sub, sub_frule, sub_rrule,
+    add, add_frule, add_rrule, conj, conj_frule, conj_rrule, div, div_frule, div_rrule, mul,
+    mul_frule, mul_rrule, powf, powf_frule, powf_rrule, powi, powi_frule, powi_rrule, sqrt,
+    sqrt_frule, sqrt_rrule, sub, sub_frule, sub_rrule,
 };
 use num_complex::{Complex32, Complex64};
-
-#[test]
-fn handle_r_to_c_projects_real_part() {
-    let g32 = Complex32::new(1.25, -9.0);
-    let g64 = Complex64::new(-3.5, 2.0);
-    assert_eq!(handle_r_to_c_f32(g32), 1.25_f32);
-    assert_eq!(handle_r_to_c_f64(g64), -3.5_f64);
-}
 
 #[test]
 fn conj_rules_match_formula_complex64() {

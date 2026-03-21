@@ -1,6 +1,5 @@
 use core::ops::{Add, Div, Mul, Neg, Sub};
 
-use num_complex::{Complex32, Complex64};
 use num_traits::{Float, FloatConst};
 
 /// Scalar trait used by elementary AD rule helpers.
@@ -132,36 +131,3 @@ pub trait ScalarAd:
 
 mod complex;
 mod real;
-
-/// PyTorch-style real-input / complex-gradient projection helper (`handle_r_to_c`).
-///
-/// This is equivalent to taking the real part when a gradient for real input
-/// becomes complex during intermediate algebra.
-///
-/// # Examples
-///
-/// ```rust
-/// use chainrules::handle_r_to_c_f64;
-/// use num_complex::Complex64;
-///
-/// let g = Complex64::new(1.25, -3.0);
-/// assert_eq!(handle_r_to_c_f64(g), 1.25);
-/// ```
-pub fn handle_r_to_c_f64(gradient: Complex64) -> f64 {
-    gradient.re
-}
-
-/// `f32` variant of [`handle_r_to_c_f64`].
-///
-/// # Examples
-///
-/// ```rust
-/// use chainrules::handle_r_to_c_f32;
-/// use num_complex::Complex32;
-///
-/// let g = Complex32::new(2.0, 4.0);
-/// assert_eq!(handle_r_to_c_f32(g), 2.0);
-/// ```
-pub fn handle_r_to_c_f32(gradient: Complex32) -> f32 {
-    gradient.re
-}
