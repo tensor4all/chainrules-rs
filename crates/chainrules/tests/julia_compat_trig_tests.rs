@@ -21,6 +21,9 @@ fn julia_compat_landmark_real_inputs_match_julia_style_values() {
     assert_eq!(sind(180.0_f64), 0.0_f64);
     assert_eq!(cosd(90.0_f64), 0.0_f64);
     assert_eq!(tand(45.0_f64), 1.0_f64);
+    assert_eq!(tand(90.0_f64), f64::INFINITY);
+    assert_eq!(tand(-90.0_f64), f64::NEG_INFINITY);
+    assert_eq!(tand(270.0_f64), f64::NEG_INFINITY);
 }
 
 #[test]
@@ -123,21 +126,6 @@ fn julia_compat_derivative_helpers_match_expected_values() {
         .abs()
             < 1e-12
     );
-}
-
-#[test]
-fn julia_compat_landmark_inputs_match_expected_values() {
-    assert_eq!(sinpi(1.0_f64), 0.0);
-    assert_eq!(cospi(0.5_f64), 0.0);
-
-    let (s, c) = sincospi(0.5_f64);
-    assert_eq!(s, 1.0);
-    assert_eq!(c, 0.0);
-
-    assert_eq!(sind(180.0_f64), 0.0);
-    assert_eq!(cosd(90.0_f64), 0.0);
-    assert_eq!(tand(45.0_f64), 1.0);
-    assert!(tand(90.0_f64).is_infinite());
 }
 
 #[test]

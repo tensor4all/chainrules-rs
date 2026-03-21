@@ -62,9 +62,12 @@ See the crate READMEs for the supported scalar function inventory and examples.
 
 ## Testing
 
-Scalar rules are checked in two complementary ways:
+Scalar rules are checked in complementary ways:
 
 - formula and behavior tests in `crates/chainrules/tests/scalarops_tests.rs`
+- compatibility and edge-case tests such as
+  `crates/chainrules/tests/julia_compat_trig_tests.rs` and
+  `crates/chainrules/tests/complex_helper_tests.rs`
 - oracle replay tests in `crates/chainrules/tests/oracle_scalar_rules.rs`
   against vendored published cases from `third_party/tensor-ad-oracles`
 

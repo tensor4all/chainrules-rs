@@ -25,6 +25,16 @@ fn chainrules_modules_stay_under_size_guideline() {
         140,
     );
     assert_line_count(
+        "../unary/trig_extra.rs",
+        include_str!("../unary/trig_extra.rs"),
+        500,
+    );
+    assert_line_count(
+        "../unary/hyperbolic_extra.rs",
+        include_str!("../unary/hyperbolic_extra.rs"),
+        180,
+    );
+    assert_line_count(
         "../unary/smooth.rs",
         include_str!("../unary/smooth.rs"),
         120,

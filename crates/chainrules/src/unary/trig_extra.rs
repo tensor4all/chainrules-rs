@@ -77,7 +77,7 @@ fn tand_real<R: Float + FloatConst>(x: R) -> R {
     } else if reduced == forty_five {
         real::<R>(1.0)
     } else if reduced == ninety {
-        R::infinity()
+        R::infinity().copysign(sinpi_real(x / one_eighty))
     } else if reduced == one_thirty_five {
         real::<R>(-1.0)
     } else {
@@ -88,10 +88,8 @@ fn tand_real<R: Float + FloatConst>(x: R) -> R {
 /// Primal `sec`.
 ///
 /// # Examples
-///
 /// ```rust
 /// use chainrules::sec;
-///
 /// assert!((sec(0.5_f64) - 1.0 / 0.5_f64.cos()).abs() < 1e-12);
 /// ```
 pub fn sec<S: ScalarAd>(x: S) -> S {
@@ -101,10 +99,8 @@ pub fn sec<S: ScalarAd>(x: S) -> S {
 /// Forward rule for `sec`.
 ///
 /// # Examples
-///
 /// ```rust
 /// use chainrules::sec_frule;
-///
 /// let (y, dy) = sec_frule(0.5_f64, 1.0);
 /// assert!((y - 1.0 / 0.5_f64.cos()).abs() < 1e-12);
 /// assert!((dy - (0.5_f64.sin() / 0.5_f64.cos().powi(2))).abs() < 1e-12);
@@ -117,10 +113,8 @@ pub fn sec_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
 /// Reverse rule for `sec`.
 ///
 /// # Examples
-///
 /// ```rust
 /// use chainrules::sec_rrule;
-///
 /// let dy = sec_rrule(0.5_f64, 1.0);
 /// assert!((dy - (0.5_f64.sin() / 0.5_f64.cos().powi(2))).abs() < 1e-12);
 /// ```
@@ -131,17 +125,37 @@ pub fn sec_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
 }
 
 /// Primal `csc`.
+///
+/// # Examples
+/// ```rust
+/// use chainrules::csc;
+/// assert!((csc(0.5_f64) - 1.0 / 0.5_f64.sin()).abs() < 1e-12);
+/// ```
 pub fn csc<S: ScalarAd>(x: S) -> S {
     inv(sin(x))
 }
 
 /// Forward rule for `csc`.
+///
+/// # Examples
+/// ```rust
+/// use chainrules::csc_frule;
+/// let (_, dy) = csc_frule(0.5_f64, 1.0);
+/// assert!((dy + 0.5_f64.cos() / 0.5_f64.sin().powi(2)).abs() < 1e-12);
+/// ```
 pub fn csc_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let (y, dy) = sin_frule(x, dx);
     inv_frule(y, dy)
 }
 
 /// Reverse rule for `csc`.
+///
+/// # Examples
+/// ```rust
+/// use chainrules::csc_rrule;
+/// let dy = csc_rrule(0.5_f64, 1.0);
+/// assert!((dy + 0.5_f64.cos() / 0.5_f64.sin().powi(2)).abs() < 1e-12);
+/// ```
 pub fn csc_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
     let y = csc(x);
     let d_y = inv_rrule(y, cotangent);
@@ -149,17 +163,37 @@ pub fn csc_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
 }
 
 /// Primal `cot`.
+///
+/// # Examples
+/// ```rust
+/// use chainrules::cot;
+/// assert!((cot(0.5_f64) - 1.0 / 0.5_f64.tan()).abs() < 1e-12);
+/// ```
 pub fn cot<S: ScalarAd>(x: S) -> S {
     inv(tan(x))
 }
 
 /// Forward rule for `cot`.
+///
+/// # Examples
+/// ```rust
+/// use chainrules::cot_frule;
+/// let (_, dy) = cot_frule(0.5_f64, 1.0);
+/// assert!((dy + 1.0 / 0.5_f64.sin().powi(2)).abs() < 1e-12);
+/// ```
 pub fn cot_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let (y, dy) = tan_frule(x, dx);
     inv_frule(y, dy)
 }
 
 /// Reverse rule for `cot`.
+///
+/// # Examples
+/// ```rust
+/// use chainrules::cot_rrule;
+/// let dy = cot_rrule(0.5_f64, 1.0);
+/// assert!((dy + 1.0 / 0.5_f64.sin().powi(2)).abs() < 1e-12);
+/// ```
 pub fn cot_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
     let y = cot(x);
     let d_y = inv_rrule(y, cotangent);
@@ -183,6 +217,15 @@ pub fn sinpi<S: ScalarAd>(x: S) -> S {
 }
 
 /// Forward rule for `sinpi`.
+///
+/// # Examples
+///
+/// ```rust
+/// use chainrules::sinpi_frule;
+///
+/// let (_, dy) = sinpi_frule(0.25_f64, 1.0);
+/// assert!((dy - std::f64::consts::PI * (std::f64::consts::PI * 0.25_f64).cos()).abs() < 1e-12);
+/// ```
 pub fn sinpi_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = sinpi(x);
     let scale = pi::<S>() * cospi(x);
@@ -190,11 +233,28 @@ pub fn sinpi_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
 }
 
 /// Reverse rule for `sinpi`.
+///
+/// # Examples
+///
+/// ```rust
+/// use chainrules::sinpi_rrule;
+///
+/// let dy = sinpi_rrule(0.25_f64, 1.0);
+/// assert!((dy - std::f64::consts::PI * (std::f64::consts::PI * 0.25_f64).cos()).abs() < 1e-12);
+/// ```
 pub fn sinpi_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
     cotangent * (pi::<S>() * cospi(x)).conj()
 }
 
 /// Primal `cospi`.
+///
+/// # Examples
+///
+/// ```rust
+/// use chainrules::cospi;
+///
+/// assert!((cospi(0.25_f64) - (std::f64::consts::PI * 0.25_f64).cos()).abs() < 1e-12);
+/// ```
 pub fn cospi<S: ScalarAd>(x: S) -> S {
     if let Some(x_real) = real_input(x) {
         return S::from_real(cospi_real(x_real));
@@ -203,6 +263,15 @@ pub fn cospi<S: ScalarAd>(x: S) -> S {
 }
 
 /// Forward rule for `cospi`.
+///
+/// # Examples
+///
+/// ```rust
+/// use chainrules::cospi_frule;
+///
+/// let (_, dy) = cospi_frule(0.25_f64, 1.0);
+/// assert!((dy + std::f64::consts::PI * (std::f64::consts::PI * 0.25_f64).sin()).abs() < 1e-12);
+/// ```
 pub fn cospi_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = cospi(x);
     let scale = -(pi::<S>() * sinpi(x));
@@ -210,6 +279,15 @@ pub fn cospi_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
 }
 
 /// Reverse rule for `cospi`.
+///
+/// # Examples
+///
+/// ```rust
+/// use chainrules::cospi_rrule;
+///
+/// let dy = cospi_rrule(0.25_f64, 1.0);
+/// assert!((dy + std::f64::consts::PI * (std::f64::consts::PI * 0.25_f64).sin()).abs() < 1e-12);
+/// ```
 pub fn cospi_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
     cotangent * (-(pi::<S>() * sinpi(x))).conj()
 }
@@ -230,6 +308,16 @@ pub fn sincospi<S: ScalarAd>(x: S) -> (S, S) {
 }
 
 /// Forward rule for `sincospi`.
+///
+/// # Examples
+///
+/// ```rust
+/// use chainrules::sincospi_frule;
+///
+/// let ((_, _), (ds, dc)) = sincospi_frule(0.25_f64, 1.0);
+/// assert!((ds - std::f64::consts::PI * (std::f64::consts::PI * 0.25_f64).cos()).abs() < 1e-12);
+/// assert!((dc + std::f64::consts::PI * (std::f64::consts::PI * 0.25_f64).sin()).abs() < 1e-12);
+/// ```
 pub fn sincospi_frule<S: ScalarAd>(x: S, dx: S) -> ((S, S), (S, S)) {
     let sin_x = sinpi(x);
     let cos_x = cospi(x);
@@ -243,17 +331,48 @@ pub fn sincospi_frule<S: ScalarAd>(x: S, dx: S) -> ((S, S), (S, S)) {
 }
 
 /// Reverse rule for `sincospi`.
+///
+/// # Examples
+///
+/// ```rust
+/// use chainrules::sincospi_rrule;
+///
+/// let dx = sincospi_rrule(0.25_f64, (1.0, 1.0));
+/// assert!(
+///     (dx - (std::f64::consts::PI * (std::f64::consts::PI * 0.25_f64).cos()
+///         - std::f64::consts::PI * (std::f64::consts::PI * 0.25_f64).sin()))
+///         .abs()
+///         < 1e-12
+/// );
+/// ```
 pub fn sincospi_rrule<S: ScalarAd>(x: S, cotangents: (S, S)) -> S {
     let (cotangent_sin, cotangent_cos) = cotangents;
     sinpi_rrule(x, cotangent_sin) + cospi_rrule(x, cotangent_cos)
 }
 
 /// Primal `sind`.
+///
+/// # Examples
+///
+/// ```rust
+/// use chainrules::sind;
+///
+/// assert!((sind(30.0_f64) - 0.5_f64).abs() < 1e-12);
+/// ```
 pub fn sind<S: ScalarAd>(x: S) -> S {
     sinpi(x / S::from_real(real::<S::Real>(180.0)))
 }
 
 /// Forward rule for `sind`.
+///
+/// # Examples
+///
+/// ```rust
+/// use chainrules::sind_frule;
+///
+/// let (_, dy) = sind_frule(30.0_f64, 1.0);
+/// assert!((dy - std::f64::consts::PI / 180.0 * (30.0_f64.to_radians()).cos()).abs() < 1e-12);
+/// ```
 pub fn sind_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let scale = S::from_real(real::<S::Real>(1.0 / 180.0));
     let (scaled_x, dscaled_x) = mul_frule(scale, x, S::from_i32(0), dx);
@@ -261,6 +380,15 @@ pub fn sind_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
 }
 
 /// Reverse rule for `sind`.
+///
+/// # Examples
+///
+/// ```rust
+/// use chainrules::sind_rrule;
+///
+/// let dy = sind_rrule(30.0_f64, 1.0);
+/// assert!((dy - std::f64::consts::PI / 180.0 * (30.0_f64.to_radians()).cos()).abs() < 1e-12);
+/// ```
 pub fn sind_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
     let scale = S::from_real(real::<S::Real>(1.0 / 180.0));
     let scaled_x = scale * x;
@@ -270,11 +398,28 @@ pub fn sind_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
 }
 
 /// Primal `cosd`.
+///
+/// # Examples
+///
+/// ```rust
+/// use chainrules::cosd;
+///
+/// assert!((cosd(60.0_f64) - 0.5_f64).abs() < 1e-12);
+/// ```
 pub fn cosd<S: ScalarAd>(x: S) -> S {
     cospi(x / S::from_real(real::<S::Real>(180.0)))
 }
 
 /// Forward rule for `cosd`.
+///
+/// # Examples
+///
+/// ```rust
+/// use chainrules::cosd_frule;
+///
+/// let (_, dy) = cosd_frule(60.0_f64, 1.0);
+/// assert!((dy + std::f64::consts::PI / 180.0 * (60.0_f64.to_radians()).sin()).abs() < 1e-12);
+/// ```
 pub fn cosd_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let scale = S::from_real(real::<S::Real>(1.0 / 180.0));
     let (scaled_x, dscaled_x) = mul_frule(scale, x, S::from_i32(0), dx);
@@ -282,6 +427,15 @@ pub fn cosd_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
 }
 
 /// Reverse rule for `cosd`.
+///
+/// # Examples
+///
+/// ```rust
+/// use chainrules::cosd_rrule;
+///
+/// let dy = cosd_rrule(60.0_f64, 1.0);
+/// assert!((dy + std::f64::consts::PI / 180.0 * (60.0_f64.to_radians()).sin()).abs() < 1e-12);
+/// ```
 pub fn cosd_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
     let scale = S::from_real(real::<S::Real>(1.0 / 180.0));
     let scaled_x = scale * x;
@@ -291,6 +445,14 @@ pub fn cosd_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
 }
 
 /// Primal `tand`.
+///
+/// # Examples
+///
+/// ```rust
+/// use chainrules::tand;
+///
+/// assert_eq!(tand(45.0_f64), 1.0);
+/// ```
 pub fn tand<S: ScalarAd>(x: S) -> S {
     if let Some(x_real) = real_input(x) {
         return S::from_real(tand_real(x_real));
@@ -299,6 +461,15 @@ pub fn tand<S: ScalarAd>(x: S) -> S {
 }
 
 /// Forward rule for `tand`.
+///
+/// # Examples
+///
+/// ```rust
+/// use chainrules::tand_frule;
+///
+/// let (_, dy) = tand_frule(45.0_f64, 1.0);
+/// assert!((dy - 2.0 * std::f64::consts::PI / 180.0).abs() < 1e-12);
+/// ```
 pub fn tand_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = tand(x);
     let scale = deg2rad::<S>() * (S::from_i32(1) + y * y);
@@ -306,6 +477,15 @@ pub fn tand_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
 }
 
 /// Reverse rule for `tand`.
+///
+/// # Examples
+///
+/// ```rust
+/// use chainrules::tand_rrule;
+///
+/// let dy = tand_rrule(45.0_f64, 1.0);
+/// assert!((dy - 2.0 * std::f64::consts::PI / 180.0).abs() < 1e-12);
+/// ```
 pub fn tand_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
     let y = tand(x);
     let scale = deg2rad::<S>() * (S::from_i32(1) + y * y);
