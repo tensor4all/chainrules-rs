@@ -95,6 +95,9 @@ where
     let (min_dx, min_dy) = min_rrule(cast::<T>(3.0_f32), cast::<T>(3.0_f32), cast::<T>(6.0_f32));
     assert_zero(min_dx);
     assert_close(min_dy, cast::<T>(6.0_f32));
+    let (min_dx, min_dy) = min_rrule(cast::<T>(2.0_f32), cast::<T>(3.0_f32), cast::<T>(5.0_f32));
+    assert_close(min_dx, cast::<T>(5.0_f32));
+    assert_zero(min_dy);
 
     let (max_y, max_dy) = max_frule(
         cast::<T>(1.0_f32),
@@ -119,6 +122,9 @@ where
     let (max_dx, max_dy) = max_rrule(cast::<T>(3.0_f32), cast::<T>(3.0_f32), cast::<T>(6.0_f32));
     assert_zero(max_dx);
     assert_close(max_dy, cast::<T>(6.0_f32));
+    let (max_dx, max_dy) = max_rrule(cast::<T>(2.0_f32), cast::<T>(3.0_f32), cast::<T>(5.0_f32));
+    assert_zero(max_dx);
+    assert_close(max_dy, cast::<T>(5.0_f32));
 }
 
 #[test]
