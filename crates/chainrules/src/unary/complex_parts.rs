@@ -2,6 +2,22 @@ use crate::ScalarAd;
 use num_complex::Complex;
 use num_traits::{Float, One, Zero};
 
+trait ComplexProjectionScalar: ScalarAd {
+    fn from_parts(re: Self::Real, im: Self::Real) -> Self;
+}
+
+impl ComplexProjectionScalar for num_complex::Complex32 {
+    fn from_parts(re: Self::Real, im: Self::Real) -> Self {
+        Complex::new(re, im)
+    }
+}
+
+impl ComplexProjectionScalar for num_complex::Complex64 {
+    fn from_parts(re: Self::Real, im: Self::Real) -> Self {
+        Complex::new(re, im)
+    }
+}
+
 /// Primal `abs`.
 ///
 /// # Examples
@@ -139,11 +155,13 @@ pub fn abs2_rrule<R: Float>(x: Complex<R>, cotangent: R) -> Complex<R> {
 /// use chainrules::real_rrule;
 /// use num_complex::Complex64;
 ///
-/// assert_eq!(real_rrule::<Complex64>(2.0), Complex64::new(2.0, 0.0));
+/// let grad: Complex64 = real_rrule(2.0);
+/// assert_eq!(grad, Complex64::new(2.0, 0.0));
 /// ```
 #[inline]
-pub fn real_rrule<S: ScalarAd>(cotangent: S::Real) -> Complex<S::Real> {
-    Complex::new(cotangent, S::Real::zero())
+#[allow(private_bounds)]
+pub fn real_rrule<S: ComplexProjectionScalar>(cotangent: S::Real) -> S {
+    S::from_parts(cotangent, S::Real::zero())
 }
 
 /// Reverse rule for `imag`.
@@ -154,11 +172,13 @@ pub fn real_rrule<S: ScalarAd>(cotangent: S::Real) -> Complex<S::Real> {
 /// use chainrules::imag_rrule;
 /// use num_complex::Complex64;
 ///
-/// assert_eq!(imag_rrule::<Complex64>(2.0), Complex64::new(0.0, 2.0));
+/// let grad: Complex64 = imag_rrule(2.0);
+/// assert_eq!(grad, Complex64::new(0.0, 2.0));
 /// ```
 #[inline]
-pub fn imag_rrule<S: ScalarAd>(cotangent: S::Real) -> Complex<S::Real> {
-    Complex::new(S::Real::zero(), cotangent)
+#[allow(private_bounds)]
+pub fn imag_rrule<S: ComplexProjectionScalar>(cotangent: S::Real) -> S {
+    S::from_parts(S::Real::zero(), cotangent)
 }
 
 /// Reverse rule for `angle`.
