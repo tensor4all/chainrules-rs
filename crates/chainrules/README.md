@@ -55,7 +55,10 @@ repository-local tests:
 - `tests/complex_helper_tests.rs` covers the projection helpers and complex
   constructor surface
 - `tests/oracle_scalar_rules.rs` replays vendored published oracle cases from
-  `../../third_party/tensor-ad-oracles`
+  `../../third_party/tensor-ad-oracles`, with direct float64 replay and
+  selected Complex64 reverse-mode replay
+- complex forward-mode checks that follow this crate's `ScalarAd` convention
+  stay in repository-local formula tests such as `tests/smooth_basis_tests.rs`
 
 ## Examples
 

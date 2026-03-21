@@ -233,7 +233,10 @@ pub fn run_unary_oracle_cases<T: OracleScalar>(cases: &[UnaryOracleCase<T>]) {
     }
 }
 
-// Reverse-only complex oracle replay keeps the current ScalarAd convention explicit.
+// Published complex oracle JVPs use the plain holomorphic derivative, while this
+// crate's ScalarAd forward convention applies the conjugated derivative. Keep
+// the oracle replay reverse-only and cover the complex forward convention in
+// repository-local formula tests.
 pub fn run_unary_oracle_reverse_cases_complex64(cases: &[UnaryReverseOracleCase<Complex64>]) {
     for case in cases {
         for (case_index, oracle) in successful_cases(case.op, <Complex64 as OracleScalar>::dtype())

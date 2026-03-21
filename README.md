@@ -69,7 +69,11 @@ Scalar rules are checked in complementary ways:
   `crates/chainrules/tests/julia_compat_trig_tests.rs` and
   `crates/chainrules/tests/complex_helper_tests.rs`
 - oracle replay tests in `crates/chainrules/tests/oracle_scalar_rules.rs`
-  against vendored published cases from `third_party/tensor-ad-oracles`
+  against vendored published cases from `third_party/tensor-ad-oracles`,
+  including direct float64 replay and selected complex128 reverse-mode replay;
+  complex forward-mode checks stay in repository-local formula tests because the
+  crate's `frule` convention intentionally differs from the published JVP
+  convention
 
 ```bash
 cargo test --workspace --release
