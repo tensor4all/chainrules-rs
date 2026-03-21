@@ -1,4 +1,5 @@
 mod basic;
+mod complex_parts;
 mod exp_log;
 mod hyperbolic;
 mod roots;
@@ -12,6 +13,10 @@ fn one<S: ScalarAd>() -> S {
 }
 
 pub use basic::{conj, conj_frule, conj_rrule, sqrt, sqrt_frule, sqrt_rrule};
+pub use complex_parts::{
+    abs, abs2, abs2_frule, abs2_rrule, angle, angle_rrule, complex, imag, imag_rrule, real,
+    real_rrule,
+};
 pub use exp_log::{
     exp, exp10, exp10_frule, exp10_rrule, exp2, exp2_frule, exp2_rrule, exp_frule, exp_rrule,
     expm1, expm1_frule, expm1_rrule, log, log10, log10_frule, log10_rrule, log1p, log1p_frule,
