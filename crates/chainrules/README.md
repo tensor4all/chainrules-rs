@@ -21,6 +21,22 @@ Supported scalar domains:
 - `Complex32`
 - `Complex64`
 
+## Supported Functions
+
+Current shipped scalar families:
+
+- arithmetic: `add`, `sub`, `mul`, `div`
+- powers and roots: `powf`, `powi`, `sqrt`
+- exponentials and logs: `exp`, `expm1`, `log`, `log1p`
+- trigonometric: `sin`, `cos`, `asin`, `acos`, `atan`
+- hyperbolic: `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`
+- complex and projection helpers: `conj`, `handle_r_to_c`
+- real-valued binary helpers: `atan2`
+
+This crate is intended as a landing zone for scalar rules ported or adapted
+from Julia's `ChainRules.jl` where they fit this crate boundary, but it is not
+a full port of `ChainRules.jl`.
+
 ## Examples
 
 ```rust

@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 //! Engine-independent scalar AD helper rules for elementary operations.
 //!
 //! This crate provides stateless primal/frule/rrule helpers for scalar
