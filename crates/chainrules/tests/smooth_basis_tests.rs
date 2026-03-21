@@ -1,3 +1,5 @@
+mod common;
+
 use chainrules::{
     cbrt, cbrt_frule, cbrt_rrule, exp10, exp10_frule, exp10_rrule, exp2, exp2_frule, exp2_rrule,
     hypot, hypot_frule, hypot_rrule, inv, inv_frule, inv_rrule, log10, log10_frule, log10_rrule,
@@ -6,20 +8,22 @@ use chainrules::{
 };
 use num_complex::{Complex64, ComplexFloat};
 
+use common::assert_close_f64;
+
 #[test]
 fn smooth_basis_helpers_are_reexported_from_chainrules() {
-    assert!((cbrt(8.0_f64) - 2.0).abs() < 1.0e-12);
-    assert!((inv(4.0_f64) - 0.25).abs() < 1.0e-12);
-    assert!((exp2(3.0_f64) - 8.0).abs() < 1.0e-12);
-    assert!((exp10(2.0_f64) - 100.0).abs() < 1.0e-12);
-    assert!((hypot(3.0_f64, 4.0_f64) - 5.0).abs() < 1.0e-12);
-    assert!((log2(8.0_f64) - 3.0).abs() < 1.0e-12);
-    assert!((log10(100.0_f64) - 2.0).abs() < 1.0e-12);
-    assert!((pow(2.0_f64, 3.0_f64) - 8.0).abs() < 1.0e-12);
-    assert!((tan(0.5_f64) - 0.5_f64.tan()).abs() < 1.0e-12);
+    assert_close_f64(cbrt(8.0_f64), 2.0, 1.0e-12, 0.0, "cbrt");
+    assert_close_f64(inv(4.0_f64), 0.25, 1.0e-12, 0.0, "inv");
+    assert_close_f64(exp2(3.0_f64), 8.0, 1.0e-12, 0.0, "exp2");
+    assert_close_f64(exp10(2.0_f64), 100.0, 1.0e-12, 0.0, "exp10");
+    assert_close_f64(hypot(3.0_f64, 4.0_f64), 5.0, 1.0e-12, 0.0, "hypot");
+    assert_close_f64(log2(8.0_f64), 3.0, 1.0e-12, 0.0, "log2");
+    assert_close_f64(log10(100.0_f64), 2.0, 1.0e-12, 0.0, "log10");
+    assert_close_f64(pow(2.0_f64, 3.0_f64), 8.0, 1.0e-12, 0.0, "pow");
+    assert_close_f64(tan(0.5_f64), 0.5_f64.tan(), 1.0e-12, 0.0, "tan");
     let (sin_x, cos_x) = sincos(0.5_f64);
-    assert!((sin_x - 0.5_f64.sin()).abs() < 1.0e-12);
-    assert!((cos_x - 0.5_f64.cos()).abs() < 1.0e-12);
+    assert_close_f64(sin_x, 0.5_f64.sin(), 1.0e-12, 0.0, "sincos.sin");
+    assert_close_f64(cos_x, 0.5_f64.cos(), 1.0e-12, 0.0, "sincos.cos");
 
     let z = Complex64::new(1.0, 2.0);
     let _ = pow(z, Complex64::new(2.0, 0.0));
@@ -28,70 +32,134 @@ fn smooth_basis_helpers_are_reexported_from_chainrules() {
 #[test]
 fn smooth_basis_frules_and_rrules_match_expected_derivatives() {
     let (tan_y, tan_dy) = tan_frule(0.25_f64, 1.0_f64);
-    assert!((tan_y - 0.25_f64.tan()).abs() < 1.0e-12);
-    assert!((tan_dy - (1.0_f64 + 0.25_f64.tan().powi(2))).abs() < 1.0e-12);
-    assert!(
-        (tan_rrule(0.25_f64.tan(), 1.0_f64) - (1.0_f64 + 0.25_f64.tan().powi(2))).abs() < 1.0e-12
+    assert_close_f64(tan_y, 0.25_f64.tan(), 1.0e-12, 0.0, "tan.y");
+    assert_close_f64(
+        tan_dy,
+        1.0_f64 + 0.25_f64.tan().powi(2),
+        1.0e-12,
+        0.0,
+        "tan.dy",
+    );
+    assert_close_f64(
+        tan_rrule(0.25_f64.tan(), 1.0_f64),
+        1.0_f64 + 0.25_f64.tan().powi(2),
+        1.0e-12,
+        0.0,
+        "tan.rrule",
     );
 
     let (exp2_y, exp2_dy) = exp2_frule(3.0_f64, 1.0_f64);
-    assert!((exp2_y - 8.0).abs() < 1.0e-12);
-    assert!((exp2_dy - 8.0_f64 * std::f64::consts::LN_2).abs() < 1.0e-12);
-    assert!((exp2_rrule(8.0_f64, 1.0_f64) - 8.0_f64 * std::f64::consts::LN_2).abs() < 1.0e-12);
+    assert_close_f64(exp2_y, 8.0, 1.0e-12, 0.0, "exp2.y");
+    assert_close_f64(
+        exp2_dy,
+        8.0_f64 * std::f64::consts::LN_2,
+        1.0e-12,
+        0.0,
+        "exp2.dy",
+    );
+    assert_close_f64(
+        exp2_rrule(8.0_f64, 1.0_f64),
+        8.0_f64 * std::f64::consts::LN_2,
+        1.0e-12,
+        0.0,
+        "exp2.rrule",
+    );
 
     let (hypot_y, hypot_dy) = hypot_frule(3.0_f64, 4.0_f64, 0.5_f64, 0.25_f64);
-    assert!((hypot_y - 5.0).abs() < 1.0e-12);
-    assert!((hypot_dy - 0.5).abs() < 1.0e-12);
-    assert!((hypot_rrule(3.0_f64, 4.0_f64, 1.0_f64).0 - 0.6_f64).abs() < 1.0e-12);
-    assert!((hypot_rrule(3.0_f64, 4.0_f64, 1.0_f64).1 - 0.8_f64).abs() < 1.0e-12);
+    assert_close_f64(hypot_y, 5.0, 1.0e-12, 0.0, "hypot.y");
+    assert_close_f64(hypot_dy, 0.5, 1.0e-12, 0.0, "hypot.dy");
+    let (hypot_dx, hypot_dy) = hypot_rrule(3.0_f64, 4.0_f64, 1.0_f64);
+    assert_close_f64(hypot_dx, 0.6_f64, 1.0e-12, 0.0, "hypot.rrule.dx");
+    assert_close_f64(hypot_dy, 0.8_f64, 1.0e-12, 0.0, "hypot.rrule.dy");
 
     let (pow_y, pow_dy) = pow_frule(2.0_f64, 3.0_f64, 1.0_f64, 0.0_f64);
-    assert!((pow_y - 8.0).abs() < 1.0e-12);
-    assert!((pow_dy - 12.0).abs() < 1.0e-12);
+    assert_close_f64(pow_y, 8.0, 1.0e-12, 0.0, "pow.y");
+    assert_close_f64(pow_dy, 12.0, 1.0e-12, 0.0, "pow.dy");
     let (pow_dx, pow_dexp) = pow_rrule(2.0_f64, 3.0_f64, 1.0_f64);
-    assert!((pow_dx - 12.0).abs() < 1.0e-12);
-    assert!((pow_dexp - (8.0_f64 * std::f64::consts::LN_2)).abs() < 1.0e-12);
+    assert_close_f64(pow_dx, 12.0, 1.0e-12, 0.0, "pow.rrule.dx");
+    assert_close_f64(
+        pow_dexp,
+        8.0_f64 * std::f64::consts::LN_2,
+        1.0e-12,
+        0.0,
+        "pow.rrule.dexp",
+    );
 
     let (sincos_y, sincos_dy) = sincos_frule(0.25_f64, 1.0_f64);
-    assert!((sincos_y.0 - 0.25_f64.sin()).abs() < 1.0e-12);
-    assert!((sincos_y.1 - 0.25_f64.cos()).abs() < 1.0e-12);
-    assert!((sincos_dy.0 - 0.25_f64.cos()).abs() < 1.0e-12);
-    assert!((sincos_dy.1 + 0.25_f64.sin()).abs() < 1.0e-12);
-    assert!(
-        (sincos_rrule(0.25_f64, (1.0_f64, 1.0_f64)) - (0.25_f64.cos() - 0.25_f64.sin())).abs()
-            < 1.0e-12
+    assert_close_f64(sincos_y.0, 0.25_f64.sin(), 1.0e-12, 0.0, "sincos.y.sin");
+    assert_close_f64(sincos_y.1, 0.25_f64.cos(), 1.0e-12, 0.0, "sincos.y.cos");
+    assert_close_f64(sincos_dy.0, 0.25_f64.cos(), 1.0e-12, 0.0, "sincos.dy.sin");
+    assert_close_f64(sincos_dy.1, -0.25_f64.sin(), 1.0e-12, 0.0, "sincos.dy.cos");
+    assert_close_f64(
+        sincos_rrule(0.25_f64, (1.0_f64, 1.0_f64)),
+        0.25_f64.cos() - 0.25_f64.sin(),
+        1.0e-12,
+        0.0,
+        "sincos.rrule",
     );
 
     let (cbrt_y, cbrt_dy) = cbrt_frule(8.0_f64, 1.0_f64);
-    assert!((cbrt_y - 2.0).abs() < 1.0e-12);
-    assert!((cbrt_dy - (1.0_f64 / (3.0_f64 * 4.0_f64))).abs() < 1.0e-12);
-    assert!((cbrt_rrule(2.0_f64, 1.0_f64) - (1.0_f64 / (3.0_f64 * 4.0_f64))).abs() < 1.0e-12);
+    assert_close_f64(cbrt_y, 2.0, 1.0e-12, 0.0, "cbrt.y");
+    assert_close_f64(
+        cbrt_dy,
+        1.0_f64 / (3.0_f64 * 4.0_f64),
+        1.0e-12,
+        0.0,
+        "cbrt.dy",
+    );
+    assert_close_f64(
+        cbrt_rrule(2.0_f64, 1.0_f64),
+        1.0_f64 / (3.0_f64 * 4.0_f64),
+        1.0e-12,
+        0.0,
+        "cbrt.rrule",
+    );
 
     let (inv_y, inv_dy) = inv_frule(4.0_f64, 2.0_f64);
-    assert!((inv_y - 0.25).abs() < 1.0e-12);
-    assert!((inv_dy + 0.125).abs() < 1.0e-12);
-    assert!((inv_rrule(0.25_f64, 2.0_f64) + 0.125).abs() < 1.0e-12);
+    assert_close_f64(inv_y, 0.25, 1.0e-12, 0.0, "inv.y");
+    assert_close_f64(inv_dy, -0.125, 1.0e-12, 0.0, "inv.dy");
+    assert_close_f64(
+        inv_rrule(0.25_f64, 2.0_f64),
+        -0.125,
+        1.0e-12,
+        0.0,
+        "inv.rrule",
+    );
 
     let (log2_y, log2_dy) = log2_frule(8.0_f64, 2.0_f64);
-    assert!((log2_y - 3.0).abs() < 1.0e-12);
+    assert_close_f64(log2_y, 3.0, 1.0e-12, 0.0, "log2.y");
     let expected_log2 = 2.0_f64 / (8.0_f64 * std::f64::consts::LN_2);
-    assert!((log2_dy - expected_log2).abs() < 1.0e-12);
-    assert!((log2_rrule(8.0_f64, 2.0_f64) - expected_log2).abs() < 1.0e-12);
+    assert_close_f64(log2_dy, expected_log2, 1.0e-12, 0.0, "log2.dy");
+    assert_close_f64(
+        log2_rrule(8.0_f64, 2.0_f64),
+        expected_log2,
+        1.0e-12,
+        0.0,
+        "log2.rrule",
+    );
 
     let (log10_y, log10_dy) = log10_frule(100.0_f64, 2.0_f64);
-    assert!((log10_y - 2.0).abs() < 1.0e-12);
-    assert!((log10_dy - (2.0_f64 / (100.0_f64 * std::f64::consts::LN_10))).abs() < 1.0e-12);
-    assert!(
-        (log10_rrule(100.0_f64, 2.0_f64) - (2.0_f64 / (100.0_f64 * std::f64::consts::LN_10))).abs()
-            < 1.0e-12
+    assert_close_f64(log10_y, 2.0, 1.0e-12, 0.0, "log10.y");
+    let expected_log10 = 2.0_f64 / (100.0_f64 * std::f64::consts::LN_10);
+    assert_close_f64(log10_dy, expected_log10, 1.0e-12, 0.0, "log10.dy");
+    assert_close_f64(
+        log10_rrule(100.0_f64, 2.0_f64),
+        expected_log10,
+        1.0e-12,
+        0.0,
+        "log10.rrule",
     );
 
     let (exp10_y, exp10_dy) = exp10_frule(2.0_f64, 0.5_f64);
-    assert!((exp10_y - 100.0).abs() < 1.0e-12);
-    assert!((exp10_dy - (100.0_f64 * std::f64::consts::LN_10 * 0.5_f64)).abs() < 1.0e-12);
-    assert!(
-        (exp10_rrule(100.0_f64, 0.5_f64) - (100.0_f64 * std::f64::consts::LN_10 * 0.5_f64)).abs()
-            < 1.0e-12
+    assert_close_f64(exp10_y, 100.0, 1.0e-12, 0.0, "exp10.y");
+    let expected_exp10 = 100.0_f64 * std::f64::consts::LN_10 * 0.5_f64;
+    assert_close_f64(exp10_dy, expected_exp10, 1.0e-12, 0.0, "exp10.dy");
+    assert_close_f64(
+        exp10_rrule(100.0_f64, 0.5_f64),
+        expected_exp10,
+        1.0e-12,
+        0.0,
+        "exp10.rrule",
     );
 }
 
