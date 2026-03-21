@@ -9,8 +9,8 @@ specific AD engine.
 
 It contains:
 
-- `chainrules-core`: core AD traits and error types
-- `chainrules`: reusable scalar `frule`/`rrule` helpers and related utilities
+- `chainrules-core`: engine-independent AD protocol
+- `chainrules`: shared scalar rule basis
 
 It intentionally does **not** ship a tape, traced value type, or any other AD
 engine runtime. Those live in separate engine crates such as
@@ -25,9 +25,9 @@ engine runtime. Those live in separate engine crates such as
 
 ## Repository Layout
 
-- [`crates/chainrules-core`](crates/chainrules-core): `Differentiable`,
-  `ReverseRule`, `ForwardRule`, `AutodiffError`, and related core types
-- [`crates/chainrules`](crates/chainrules): scalar rule implementations such as
+- [`crates/chainrules-core`](crates/chainrules-core): protocol-only crate for
+  `Differentiable`, `ReverseRule`, `ForwardRule`, and `AutodiffError`
+- [`crates/chainrules`](crates/chainrules): shared scalar rules such as
   `exp`, `log1p`, `sin`, `atanh`, `powf`, and `atan2`
 - [`third_party/tensor-ad-oracles`](third_party/tensor-ad-oracles): vendored
   oracle data used to validate scalar rules against published references
@@ -47,6 +47,14 @@ engine that executes those rules over a tape. The boundary is deliberate:
 - `chainrules-rs` stays generic and reusable
 - `tidu-rs` can evolve independently as an engine
 - downstream tensor libraries can swap engines without rewriting scalar rules
+
+## Crate Roles
+
+`chainrules-core` does not provide function rules.
+`chainrules` provides stateless scalar `foo`, `foo_frule`, and `foo_rrule`
+helpers.
+
+See the crate READMEs for the supported scalar function inventory and examples.
 
 ## Testing
 
