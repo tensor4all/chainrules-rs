@@ -211,6 +211,27 @@ fn pow_rules_handle_zero_and_negative_real_paths() {
 }
 
 #[test]
+fn pow_rules_mark_zero_base_exponent_singularities_for_real_inputs() {
+    let (_, zero_zero_dy) = pow_frule(0.0_f64, 0.0_f64, 0.0_f64, 1.0_f64);
+    assert!(zero_zero_dy.is_nan());
+
+    let (_, zero_neg_dy) = pow_frule(0.0_f64, -1.0_f64, 0.0_f64, 1.0_f64);
+    assert!(zero_neg_dy.is_nan());
+
+    let (_, zero_zero_dexp) = pow_rrule(0.0_f64, 0.0_f64, 1.0_f64);
+    assert!(zero_zero_dexp.is_nan());
+
+    let (_, zero_neg_dexp) = pow_rrule(0.0_f64, -1.0_f64, 1.0_f64);
+    assert!(zero_neg_dexp.is_nan());
+
+    let (_, zero_zero_dy32) = pow_frule(0.0_f32, 0.0_f32, 0.0_f32, 1.0_f32);
+    assert!(zero_zero_dy32.is_nan());
+
+    let (_, zero_neg_dexp32) = pow_rrule(0.0_f32, -1.0_f32, 1.0_f32);
+    assert!(zero_neg_dexp32.is_nan());
+}
+
+#[test]
 fn pow_rules_cover_complex_frule_and_rrule_paths() {
     let x = Complex64::new(1.0, 1.0);
     let exponent = Complex64::new(2.0, 0.5);

@@ -1,4 +1,4 @@
-use num_traits::{One, Zero};
+use num_traits::{Float, One, Zero};
 
 use crate::ScalarAd;
 
@@ -115,6 +115,9 @@ pub fn pow<S: ScalarAd>(x: S, exponent: S) -> S {
 fn zero<S: ScalarAd>() -> S {
     S::from_i32(0)
 }
+fn nan<S: ScalarAd>() -> S {
+    S::from_real(S::Real::nan())
+}
 fn pow_x_scale<S: ScalarAd>(x: S, exponent: S) -> S {
     if exponent == zero::<S>() {
         zero::<S>()
@@ -123,14 +126,17 @@ fn pow_x_scale<S: ScalarAd>(x: S, exponent: S) -> S {
     }
 }
 fn pow_exp_scale<S: ScalarAd>(x: S, exponent: S) -> S {
-    if x == zero::<S>() && exponent.imag() == S::Real::zero() && exponent.real() >= S::Real::zero()
-    {
-        zero::<S>()
+    if x == zero::<S>() && exponent.imag() == S::Real::zero() {
+        if exponent.real() > S::Real::zero() {
+            zero::<S>()
+        } else {
+            nan::<S>()
+        }
     } else {
         (x.pow(exponent) * x.ln()).conj()
     }
 }
-#[doc = "Forward rule for `pow(x, exponent)`.\n\n# Examples\n```rust\nuse chainrules::pow_frule;\n\nlet (y, dy) = pow_frule(2.0_f64, 3.0_f64, 1.0, 0.0);\nassert_eq!(y, 8.0);\nassert!((dy - 12.0).abs() < 1e-12);\n```"]
+#[doc = "Forward rule for `pow(x, exponent)`.\n\nWhen `x` is zero and `exponent` is a non-positive real scalar, the exponent-tangent path returns `NaN` to surface the singularity.\n\n# Examples\n```rust\nuse chainrules::pow_frule;\n\nlet (y, dy) = pow_frule(2.0_f64, 3.0_f64, 1.0, 0.0);\nassert_eq!(y, 8.0);\nassert!((dy - 12.0).abs() < 1e-12);\n```"]
 pub fn pow_frule<S: ScalarAd>(x: S, exponent: S, dx: S, dexponent: S) -> (S, S) {
     let y = x.pow(exponent);
     let dfdx = if dx == zero::<S>() {
@@ -145,7 +151,7 @@ pub fn pow_frule<S: ScalarAd>(x: S, exponent: S, dx: S, dexponent: S) -> (S, S) 
     };
     (y, dfdx + dfde)
 }
-#[doc = "Reverse rule for `pow(x, exponent)`.\n\n# Examples\n```rust\nuse chainrules::pow_rrule;\n\nlet (dx, dexp) = pow_rrule(2.0_f64, 3.0_f64, 1.0);\nassert_eq!(dx, 12.0);\nassert!((dexp - 8.0_f64 * std::f64::consts::LN_2).abs() < 1e-12);\n```"]
+#[doc = "Reverse rule for `pow(x, exponent)`.\n\nWhen `x` is zero and `exponent` is a non-positive real scalar, the exponent-cotangent path returns `NaN` to surface the singularity.\n\n# Examples\n```rust\nuse chainrules::pow_rrule;\n\nlet (dx, dexp) = pow_rrule(2.0_f64, 3.0_f64, 1.0);\nassert_eq!(dx, 12.0);\nassert!((dexp - 8.0_f64 * std::f64::consts::LN_2).abs() < 1e-12);\n```"]
 pub fn pow_rrule<S: ScalarAd>(x: S, exponent: S, cotangent: S) -> (S, S) {
     let dfdx = if cotangent == zero::<S>() {
         zero::<S>()
