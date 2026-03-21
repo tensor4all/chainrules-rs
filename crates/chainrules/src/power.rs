@@ -123,9 +123,7 @@ fn pow_x_scale<S: ScalarAd>(x: S, exponent: S) -> S {
     }
 }
 fn pow_exp_scale<S: ScalarAd>(x: S, exponent: S) -> S {
-    if x.real() == S::Real::zero()
-        && exponent.imag() == S::Real::zero()
-        && exponent.real() >= S::Real::zero()
+    if x == zero::<S>() && exponent.imag() == S::Real::zero() && exponent.real() >= S::Real::zero()
     {
         zero::<S>()
     } else {

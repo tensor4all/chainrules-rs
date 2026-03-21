@@ -130,4 +130,9 @@ fn pow_rules_cover_complex_frule_and_rrule_paths() {
     let expected_dexp_rr = cotangent * (expected_y * x.ln()).conj();
     assert!((dx_rr - expected_dx_rr).norm() < 1.0e-12);
     assert!((dexp_rr - expected_dexp_rr).norm() < 1.0e-12);
+
+    let imag_x = Complex64::new(0.0, 1.0);
+    let (_, imag_dexp_rr) = pow_rrule(imag_x, Complex64::new(2.0, 0.0), Complex64::new(1.0, 0.0));
+    let expected_imag_dexp_rr = (imag_x.powc(Complex64::new(2.0, 0.0)) * imag_x.ln()).conj();
+    assert!((imag_dexp_rr - expected_imag_dexp_rr).norm() < 1.0e-12);
 }
