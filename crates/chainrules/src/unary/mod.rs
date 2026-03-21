@@ -3,6 +3,7 @@ mod complex_parts;
 mod exp_log;
 mod hyperbolic;
 mod hyperbolic_extra;
+mod nonsmooth;
 mod roots;
 mod smooth;
 mod trig;
@@ -31,6 +32,10 @@ pub use hyperbolic::{
 };
 pub use hyperbolic_extra::{
     coth, coth_frule, coth_rrule, csch, csch_frule, csch_rrule, sech, sech_frule, sech_rrule,
+};
+pub use nonsmooth::{
+    ceil, ceil_frule, ceil_rrule, floor, floor_frule, floor_rrule, round, round_frule, round_rrule,
+    sign, sign_frule, sign_rrule,
 };
 pub use roots::{cbrt, cbrt_frule, cbrt_rrule, inv, inv_frule, inv_rrule};
 pub use smooth::{
