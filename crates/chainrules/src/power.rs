@@ -108,59 +108,56 @@ pub fn powi_rrule<S: ScalarAd>(x: S, exponent: i32, cotangent: S) -> S {
     cotangent * (S::from_i32(exponent) * x.powi(exponent - 1)).conj()
 }
 
-/// Primal `pow(x, exponent)`.
-///
-/// # Examples
-///
-/// ```rust
-/// use chainrules::pow;
-///
-/// assert_eq!(pow(2.0_f64, 3.0_f64), 8.0);
-/// ```
+#[doc = "Primal `pow(x, exponent)`.\n\n# Examples\n```rust\nuse chainrules::pow;\n\nassert_eq!(pow(2.0_f64, 3.0_f64), 8.0);\n```"]
 pub fn pow<S: ScalarAd>(x: S, exponent: S) -> S {
     x.pow(exponent)
 }
-
-/// Forward rule for `pow(x, exponent)`.
-///
-/// # Examples
-///
-/// ```rust
-/// use chainrules::pow_frule;
-///
-/// let (y, dy) = pow_frule(2.0_f64, 3.0_f64, 1.0, 0.0);
-/// assert_eq!(y, 8.0);
-/// assert!((dy - 12.0).abs() < 1e-12);
-/// ```
+fn zero<S: ScalarAd>() -> S {
+    S::from_i32(0)
+}
+fn pow_x_scale<S: ScalarAd>(x: S, exponent: S) -> S {
+    if exponent == zero::<S>() {
+        zero::<S>()
+    } else {
+        (exponent * x.pow(exponent - S::from_i32(1))).conj()
+    }
+}
+fn pow_exp_scale<S: ScalarAd>(x: S, exponent: S) -> S {
+    if x.real() == S::Real::zero()
+        && exponent.imag() == S::Real::zero()
+        && exponent.real() >= S::Real::zero()
+    {
+        zero::<S>()
+    } else {
+        (x.pow(exponent) * x.ln()).conj()
+    }
+}
+#[doc = "Forward rule for `pow(x, exponent)`.\n\n# Examples\n```rust\nuse chainrules::pow_frule;\n\nlet (y, dy) = pow_frule(2.0_f64, 3.0_f64, 1.0, 0.0);\nassert_eq!(y, 8.0);\nassert!((dy - 12.0).abs() < 1e-12);\n```"]
 pub fn pow_frule<S: ScalarAd>(x: S, exponent: S, dx: S, dexponent: S) -> (S, S) {
     let y = x.pow(exponent);
-    let dfdx = if exponent == S::from_i32(0) {
-        S::from_i32(0)
+    let dfdx = if dx == zero::<S>() {
+        zero::<S>()
     } else {
-        (exponent * x.pow(exponent - S::from_i32(1))).conj()
+        dx * pow_x_scale(x, exponent)
     };
-    let dfde = (y * x.ln()).conj();
-    (y, dx * dfdx + dexponent * dfde)
+    let dfde = if dexponent == zero::<S>() {
+        zero::<S>()
+    } else {
+        dexponent * pow_exp_scale(x, exponent)
+    };
+    (y, dfdx + dfde)
 }
-
-/// Reverse rule for `pow(x, exponent)`.
-///
-/// # Examples
-///
-/// ```rust
-/// use chainrules::pow_rrule;
-///
-/// let (dx, dexp) = pow_rrule(2.0_f64, 3.0_f64, 1.0);
-/// assert_eq!(dx, 12.0);
-/// assert!((dexp - 8.0_f64 * std::f64::consts::LN_2).abs() < 1e-12);
-/// ```
+#[doc = "Reverse rule for `pow(x, exponent)`.\n\n# Examples\n```rust\nuse chainrules::pow_rrule;\n\nlet (dx, dexp) = pow_rrule(2.0_f64, 3.0_f64, 1.0);\nassert_eq!(dx, 12.0);\nassert!((dexp - 8.0_f64 * std::f64::consts::LN_2).abs() < 1e-12);\n```"]
 pub fn pow_rrule<S: ScalarAd>(x: S, exponent: S, cotangent: S) -> (S, S) {
-    let y = x.pow(exponent);
-    let dfdx = if exponent == S::from_i32(0) {
-        S::from_i32(0)
+    let dfdx = if cotangent == zero::<S>() {
+        zero::<S>()
     } else {
-        (exponent * x.pow(exponent - S::from_i32(1))).conj()
+        cotangent * pow_x_scale(x, exponent)
     };
-    let dfde = (y * x.ln()).conj();
-    (cotangent * dfdx, cotangent * dfde)
+    let dfde = if cotangent == zero::<S>() {
+        zero::<S>()
+    } else {
+        cotangent * pow_exp_scale(x, exponent)
+    };
+    (dfdx, dfde)
 }

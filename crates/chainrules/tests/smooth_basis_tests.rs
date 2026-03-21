@@ -4,7 +4,7 @@ use chainrules::{
     log2, log2_frule, log2_rrule, pow, pow_frule, pow_rrule, sincos, sincos_frule, sincos_rrule,
     tan, tan_frule, tan_rrule,
 };
-use num_complex::Complex64;
+use num_complex::{Complex64, ComplexFloat};
 
 #[test]
 fn smooth_basis_helpers_are_reexported_from_chainrules() {
@@ -93,4 +93,41 @@ fn smooth_basis_frules_and_rrules_match_expected_derivatives() {
         (exp10_rrule(100.0_f64, 0.5_f64) - (100.0_f64 * std::f64::consts::LN_10 * 0.5_f64)).abs()
             < 1.0e-12
     );
+}
+
+#[test]
+fn pow_rules_handle_zero_and_negative_real_paths() {
+    let (neg_y, neg_dy) = pow_frule(-2.0_f64, 3.0_f64, 1.0_f64, 0.0_f64);
+    assert!((neg_y + 8.0).abs() < 1.0e-12);
+    assert!((neg_dy - 12.0).abs() < 1.0e-12);
+
+    let (zero_y, zero_dy) = pow_frule(0.0_f64, 2.0_f64, 1.0_f64, 0.0_f64);
+    assert!((zero_y - 0.0).abs() < 1.0e-12);
+    assert!((zero_dy - 0.0).abs() < 1.0e-12);
+
+    let (dx, dexp) = pow_rrule(0.0_f64, 2.0_f64, 1.0_f64);
+    assert!((dx - 0.0).abs() < 1.0e-12);
+    assert!((dexp - 0.0).abs() < 1.0e-12);
+}
+
+#[test]
+fn pow_rules_cover_complex_frule_and_rrule_paths() {
+    let x = Complex64::new(1.0, 1.0);
+    let exponent = Complex64::new(2.0, 0.0);
+    let dx = Complex64::new(0.5, -0.25);
+    let dexp = Complex64::new(0.0, 0.0);
+
+    let (y, dy) = pow_frule(x, exponent, dx, dexp);
+    let expected_y = x.powc(exponent);
+    let expected_dy = dx * (exponent * x.powc(exponent - Complex64::new(1.0, 0.0))).conj();
+    assert!((y - expected_y).norm() < 1.0e-12);
+    assert!((dy - expected_dy).norm() < 1.0e-12);
+
+    let cotangent = Complex64::new(0.5, -0.25);
+    let (dx_rr, dexp_rr) = pow_rrule(x, exponent, cotangent);
+    let expected_dx_rr =
+        cotangent * (exponent * x.powc(exponent - Complex64::new(1.0, 0.0))).conj();
+    let expected_dexp_rr = cotangent * (expected_y * x.ln()).conj();
+    assert!((dx_rr - expected_dx_rr).norm() < 1.0e-12);
+    assert!((dexp_rr - expected_dexp_rr).norm() < 1.0e-12);
 }
