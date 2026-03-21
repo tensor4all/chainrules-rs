@@ -30,7 +30,8 @@ Current shipped scalar families:
 - exponentials and logs: `exp`, `expm1`, `log`, `log1p`
 - trigonometric: `sin`, `cos`, `asin`, `acos`, `atan`
 - hyperbolic: `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`
-- complex and projection helpers: `conj`, `handle_r_to_c_f32`, `handle_r_to_c_f64`
+- smooth helpers: `cbrt`, `inv`, `exp2`, `exp10`, `log2`, `log10`, `hypot`, `pow`, `sincos`, `tan`
+- complex and projection helpers: `conj`, `abs`, `abs2`, `angle`, `real`, `imag`, `complex`, `handle_r_to_c_f32`, `handle_r_to_c_f64`
 - real-valued binary helpers: `atan2`
 
 This crate is intended as a landing zone for scalar rules ported or adapted
@@ -42,8 +43,10 @@ a full port of `ChainRules.jl`.
 Rules in this crate are not accepted on provenance alone. They are checked with
 repository-local tests:
 
-- `tests/scalarops_tests.rs` covers direct formulas, edge cases, and
+- `tests/scalarops_tests.rs` covers direct formulas, edge cases, and smooth
   real/complex behavior
+- `tests/complex_helper_tests.rs` covers the projection helpers and complex
+  constructor surface
 - `tests/oracle_scalar_rules.rs` replays vendored published oracle cases from
   `../../third_party/tensor-ad-oracles`
 
