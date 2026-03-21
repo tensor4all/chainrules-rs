@@ -10,7 +10,7 @@ pub fn tanh<S: ScalarAd>(x: S) -> S {
 pub fn tanh_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = x.tanh();
     let scale = one::<S>() - y * y;
-    (y, dx * scale.conj())
+    (y, dx * scale)
 }
 
 /// Reverse rule for `tanh`.
@@ -26,7 +26,7 @@ pub fn sinh<S: ScalarAd>(x: S) -> S {
 /// Forward rule for `sinh`.
 pub fn sinh_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = x.sinh();
-    (y, dx * x.cosh().conj())
+    (y, dx * x.cosh())
 }
 
 /// Reverse rule for `sinh`.
@@ -42,7 +42,7 @@ pub fn cosh<S: ScalarAd>(x: S) -> S {
 /// Forward rule for `cosh`.
 pub fn cosh_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = x.cosh();
-    (y, dx * x.sinh().conj())
+    (y, dx * x.sinh())
 }
 
 /// Reverse rule for `cosh`.
@@ -63,7 +63,7 @@ pub fn asinh<S: ScalarAd>(x: S) -> S {
 pub fn asinh_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = x.asinh();
     let scale = inverse_sqrt_one_plus_square(x);
-    (y, dx * scale.conj())
+    (y, dx * scale)
 }
 
 /// Reverse rule for `asinh`.
@@ -84,7 +84,7 @@ pub fn acosh<S: ScalarAd>(x: S) -> S {
 pub fn acosh_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = x.acosh();
     let scale = inverse_acosh_scale(x);
-    (y, dx * scale.conj())
+    (y, dx * scale)
 }
 
 /// Reverse rule for `acosh`.
@@ -101,7 +101,7 @@ pub fn atanh<S: ScalarAd>(x: S) -> S {
 pub fn atanh_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = x.atanh();
     let scale = one::<S>() / (one::<S>() - x * x);
-    (y, dx * scale.conj())
+    (y, dx * scale)
 }
 
 /// Reverse rule for `atanh`.

@@ -174,25 +174,40 @@ fn smooth_basis_frules_and_rrules_match_expected_derivatives() {
 }
 
 #[test]
-fn smooth_basis_complex_frules_match_expected_derivatives() {
+fn smooth_basis_complex_frules_match_standard_jvps() {
     let z = Complex64::new(0.25, -0.5);
     let dz = Complex64::new(0.5, -0.25);
 
     let (tan_y, tan_dy) = tan_frule(z, dz);
-    let tan_scale = (Complex64::new(1.0, 0.0) + tan_y * tan_y).conj();
+    let tan_scale = Complex64::new(1.0, 0.0) + tan_y * tan_y;
     assert_close_complex64(tan_y, z.tan(), 1.0e-12, 0.0, "tan.z");
     assert_close_complex64(tan_dy, dz * tan_scale, 1.0e-12, 0.0, "tan.dz");
 
     let (exp2_y, exp2_dy) = exp2_frule(z, dz);
-    let exp2_scale = (exp2_y * Complex64::new(std::f64::consts::LN_2, 0.0)).conj();
+    let exp2_scale = exp2_y * Complex64::new(std::f64::consts::LN_2, 0.0);
     assert_close_complex64(exp2_y, z.exp2(), 1.0e-12, 0.0, "exp2.z");
     assert_close_complex64(exp2_dy, dz * exp2_scale, 1.0e-12, 0.0, "exp2.dz");
 
     let (log2_y, log2_dy) = log2_frule(z, dz);
-    let log2_scale =
-        (Complex64::new(1.0, 0.0) / (z * Complex64::new(std::f64::consts::LN_2, 0.0))).conj();
+    let log2_scale = Complex64::new(1.0, 0.0) / (z * Complex64::new(std::f64::consts::LN_2, 0.0));
     assert_close_complex64(log2_y, z.log2(), 1.0e-12, 0.0, "log2.z");
     assert_close_complex64(log2_dy, dz * log2_scale, 1.0e-12, 0.0, "log2.dz");
+}
+
+#[test]
+fn smooth_basis_complex_frules_cover_additional_standard_jvps() {
+    let z = Complex64::new(0.25, -0.5);
+    let dz = Complex64::new(0.5, -0.25);
+
+    let ((sin_y, cos_y), (dsin_dz, dcos_dz)) = sincos_frule(z, dz);
+    assert_close_complex64(sin_y, z.sin(), 1.0e-12, 0.0, "sincos.z.sin");
+    assert_close_complex64(cos_y, z.cos(), 1.0e-12, 0.0, "sincos.z.cos");
+    assert_close_complex64(dsin_dz, dz * z.cos(), 1.0e-12, 0.0, "sincos.dz.sin");
+    assert_close_complex64(dcos_dz, dz * -z.sin(), 1.0e-12, 0.0, "sincos.dz.cos");
+
+    let (inv_y, inv_dy) = inv_frule(z, dz);
+    assert_close_complex64(inv_y, z.recip(), 1.0e-12, 0.0, "inv.z");
+    assert_close_complex64(inv_dy, dz * (-(inv_y * inv_y)), 1.0e-12, 0.0, "inv.dz");
 }
 
 #[test]

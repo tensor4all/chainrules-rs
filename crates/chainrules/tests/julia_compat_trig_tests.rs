@@ -279,7 +279,7 @@ fn julia_compat_derivative_helpers_match_expected_values() {
 }
 
 #[test]
-fn julia_compat_helpers_cover_complex_primal_and_cotangent_paths() {
+fn julia_compat_helpers_cover_complex_primal_forward_and_cotangent_paths() {
     let z = Complex64::new(0.25, -0.1);
     let dz = Complex64::new(1.0, -0.25);
     let cotangent = Complex64::new(0.75, -0.5);
@@ -291,10 +291,43 @@ fn julia_compat_helpers_cover_complex_primal_and_cotangent_paths() {
     let (_, dsinpi) = sinpi_frule(z, dz);
     assert_close_complex64(
         dsinpi,
-        dz * (Complex64::new(std::f64::consts::PI, 0.0) * pi_z.cos()).conj(),
+        dz * (Complex64::new(std::f64::consts::PI, 0.0) * pi_z.cos()),
         1e-12,
         0.0,
         "sinpi_frule(z)",
+    );
+    let (_, dcospi) = cospi_frule(z, dz);
+    assert_close_complex64(
+        dcospi,
+        dz * (-(Complex64::new(std::f64::consts::PI, 0.0) * pi_z.sin())),
+        1e-12,
+        0.0,
+        "cospi_frule(z)",
+    );
+    let ((_, _), (dsinpi_pair, dcospi_pair)) = sincospi_frule(z, dz);
+    assert_close_complex64(
+        dsinpi_pair,
+        dz * (Complex64::new(std::f64::consts::PI, 0.0) * pi_z.cos()),
+        1e-12,
+        0.0,
+        "sincospi_frule.sin(z)",
+    );
+    assert_close_complex64(
+        dcospi_pair,
+        dz * (-(Complex64::new(std::f64::consts::PI, 0.0) * pi_z.sin())),
+        1e-12,
+        0.0,
+        "sincospi_frule.cos(z)",
+    );
+    let (_, dtand) = tand_frule(z, dz);
+    let tand_z = (Complex64::new(std::f64::consts::PI / 180.0, 0.0) * z).tan();
+    assert_close_complex64(
+        dtand,
+        dz * (Complex64::new(std::f64::consts::PI / 180.0, 0.0)
+            * (Complex64::new(1.0, 0.0) + tand_z * tand_z)),
+        1e-12,
+        0.0,
+        "tand_frule(z)",
     );
 
     assert_close_complex64(
@@ -310,6 +343,23 @@ fn julia_compat_helpers_cover_complex_primal_and_cotangent_paths() {
         1e-12,
         0.0,
         "sinpi_rrule(z)",
+    );
+    let (_, dcot) = cot_frule(z, dz);
+    assert_close_complex64(
+        dcot,
+        dz * (-(Complex64::new(1.0, 0.0) / z.sin().powi(2))),
+        1e-12,
+        0.0,
+        "cot_frule(z)",
+    );
+    let (_, dsech) = sech_frule(z, dz);
+    let sech_z = sech(z);
+    assert_close_complex64(
+        dsech,
+        dz * (-(sech_z * z.tanh())),
+        1e-12,
+        0.0,
+        "sech_frule(z)",
     );
 }
 

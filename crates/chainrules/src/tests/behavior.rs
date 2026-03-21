@@ -441,20 +441,20 @@ fn trig_and_hyperbolic_primal_entrypoints_match_std_ops() {
 }
 
 #[test]
-fn extended_complex_unary_rules_conjugate_their_jacobians() {
+fn extended_complex_unary_rules_use_standard_jvps_with_conjugate_rrules() {
     let x = Complex64::new(0.25, -0.5);
     let dx = Complex64::new(-0.75, 0.5);
     let cotangent = Complex64::new(0.5, -1.25);
 
     let (_sin_y, sin_dy) = sin_frule(x, dx);
-    assert_close_c64(sin_dy, dx * ComplexFloat::conj(ComplexFloat::cos(x)));
+    assert_close_c64(sin_dy, dx * ComplexFloat::cos(x));
     assert_close_c64(
         sin_rrule(x, cotangent),
         cotangent * ComplexFloat::conj(ComplexFloat::cos(x)),
     );
 
     let (_cos_y, cos_dy) = cos_frule(x, dx);
-    assert_close_c64(cos_dy, dx * ComplexFloat::conj(-ComplexFloat::sin(x)));
+    assert_close_c64(cos_dy, dx * -ComplexFloat::sin(x));
     assert_close_c64(
         cos_rrule(x, cotangent),
         cotangent * ComplexFloat::conj(-ComplexFloat::sin(x)),
@@ -462,19 +462,18 @@ fn extended_complex_unary_rules_conjugate_their_jacobians() {
 
     let tanh_y = ComplexFloat::tanh(x);
     let (_tanh_primal, tanh_dy) = tanh_frule(x, dx);
-    assert_close_c64(
-        tanh_dy,
-        dx * ComplexFloat::conj(Complex64::new(1.0, 0.0) - tanh_y * tanh_y),
-    );
+    assert_close_c64(tanh_dy, dx * (Complex64::new(1.0, 0.0) - tanh_y * tanh_y));
     assert_close_c64(
         tanh_rrule(tanh_y, cotangent),
         cotangent * ComplexFloat::conj(Complex64::new(1.0, 0.0) - tanh_y * tanh_y),
     );
 
     let (_asinh_y, asinh_dy) = asinh_frule(x, dx);
-    let asinh_scale = ComplexFloat::conj(
-        Complex64::new(1.0, 0.0) / ComplexFloat::sqrt(Complex64::new(1.0, 0.0) + x * x),
-    );
+    let asinh_scale =
+        Complex64::new(1.0, 0.0) / ComplexFloat::sqrt(Complex64::new(1.0, 0.0) + x * x);
     assert_close_c64(asinh_dy, dx * asinh_scale);
-    assert_close_c64(asinh_rrule(x, cotangent), cotangent * asinh_scale);
+    assert_close_c64(
+        asinh_rrule(x, cotangent),
+        cotangent * ComplexFloat::conj(asinh_scale),
+    );
 }

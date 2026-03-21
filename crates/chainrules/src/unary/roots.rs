@@ -27,7 +27,7 @@ pub fn cbrt<S: ScalarAd>(x: S) -> S {
 pub fn cbrt_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = x.cbrt();
     let scale = S::from_i32(1) / (S::from_i32(3) * y * y);
-    (y, dx * scale.conj())
+    (y, dx * scale)
 }
 
 /// Reverse rule for `cbrt`.
@@ -70,7 +70,7 @@ pub fn inv<S: ScalarAd>(x: S) -> S {
 /// ```
 pub fn inv_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = x.recip();
-    (y, dx * (-(y * y)).conj())
+    (y, dx * (-(y * y)))
 }
 
 /// Reverse rule for `inv`.

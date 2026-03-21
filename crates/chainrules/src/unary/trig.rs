@@ -9,7 +9,7 @@ pub fn sin<S: ScalarAd>(x: S) -> S {
 /// Forward rule for `sin`.
 pub fn sin_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = x.sin();
-    (y, dx * x.cos().conj())
+    (y, dx * x.cos())
 }
 
 /// Reverse rule for `sin`.
@@ -25,7 +25,7 @@ pub fn cos<S: ScalarAd>(x: S) -> S {
 /// Forward rule for `cos`.
 pub fn cos_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = x.cos();
-    (y, dx * (-x.sin()).conj())
+    (y, dx * -x.sin())
 }
 
 /// Reverse rule for `cos`.
@@ -46,7 +46,7 @@ pub fn asin<S: ScalarAd>(x: S) -> S {
 pub fn asin_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = x.asin();
     let scale = inverse_sqrt_one_minus_square(x);
-    (y, dx * scale.conj())
+    (y, dx * scale)
 }
 
 /// Reverse rule for `asin`.
@@ -63,7 +63,7 @@ pub fn acos<S: ScalarAd>(x: S) -> S {
 pub fn acos_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = x.acos();
     let scale = -inverse_sqrt_one_minus_square(x);
-    (y, dx * scale.conj())
+    (y, dx * scale)
 }
 
 /// Reverse rule for `acos`.
@@ -80,7 +80,7 @@ pub fn atan<S: ScalarAd>(x: S) -> S {
 pub fn atan_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = x.atan();
     let scale = one::<S>() / (one::<S>() + x * x);
-    (y, dx * scale.conj())
+    (y, dx * scale)
 }
 
 /// Reverse rule for `atan`.
@@ -96,7 +96,7 @@ pub fn tan<S: ScalarAd>(x: S) -> S {
 #[doc = "Forward rule for `tan`.\n\n# Examples\n```rust\nuse chainrules::tan_frule;\n\nlet (y, dy) = tan_frule(0.25_f64, 1.0);\nassert!((dy - (1.0 + 0.25_f64.tan().powi(2))).abs() < 1e-12);\n```"]
 pub fn tan_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = x.tan();
-    (y, dx * (one::<S>() + y * y).conj())
+    (y, dx * (one::<S>() + y * y))
 }
 
 #[doc = "Reverse rule for `tan`.\n\n# Examples\n```rust\nuse chainrules::tan_rrule;\n\nlet dy = tan_rrule(0.25_f64.tan(), 1.0);\nassert!((dy - (1.0 + 0.25_f64.tan().powi(2))).abs() < 1e-12);\n```"]
@@ -113,7 +113,7 @@ pub fn sincos<S: ScalarAd>(x: S) -> (S, S) {
 pub fn sincos_frule<S: ScalarAd>(x: S, dx: S) -> ((S, S), (S, S)) {
     let sin_x = x.sin();
     let cos_x = x.cos();
-    ((sin_x, cos_x), (dx * cos_x.conj(), dx * (-sin_x).conj()))
+    ((sin_x, cos_x), (dx * cos_x, dx * -sin_x))
 }
 
 #[doc = "Reverse rule for `sincos`.\n\n# Examples\n```rust\nuse chainrules::sincos_rrule;\n\nlet dx = sincos_rrule(0.25_f64, (1.0, 1.0));\nassert!((dx - (0.25_f64.cos() - 0.25_f64.sin())).abs() < 1e-12);\n```"]

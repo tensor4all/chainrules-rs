@@ -229,7 +229,7 @@ pub fn sinpi<S: ScalarAd>(x: S) -> S {
 pub fn sinpi_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = sinpi(x);
     let scale = pi::<S>() * cospi(x);
-    (y, dx * scale.conj())
+    (y, dx * scale)
 }
 
 /// Reverse rule for `sinpi`.
@@ -275,7 +275,7 @@ pub fn cospi<S: ScalarAd>(x: S) -> S {
 pub fn cospi_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = cospi(x);
     let scale = -(pi::<S>() * sinpi(x));
-    (y, dx * scale.conj())
+    (y, dx * scale)
 }
 
 /// Reverse rule for `cospi`.
@@ -323,10 +323,7 @@ pub fn sincospi_frule<S: ScalarAd>(x: S, dx: S) -> ((S, S), (S, S)) {
     let cos_x = cospi(x);
     (
         (sin_x, cos_x),
-        (
-            dx * (pi::<S>() * cos_x).conj(),
-            dx * (-(pi::<S>() * sin_x)).conj(),
-        ),
+        (dx * (pi::<S>() * cos_x), dx * (-(pi::<S>() * sin_x))),
     )
 }
 
@@ -473,7 +470,7 @@ pub fn tand<S: ScalarAd>(x: S) -> S {
 pub fn tand_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = tand(x);
     let scale = deg2rad::<S>() * (S::from_i32(1) + y * y);
-    (y, dx * scale.conj())
+    (y, dx * scale)
 }
 
 /// Reverse rule for `tand`.

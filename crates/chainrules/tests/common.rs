@@ -13,12 +13,6 @@ pub struct UnaryOracleCase<T> {
     pub rrule: fn(T, T, T) -> T,
 }
 
-pub struct UnaryReverseOracleCase<T> {
-    pub op: &'static str,
-    pub primal: fn(T) -> T,
-    pub rrule: fn(T, T, T) -> T,
-}
-
 pub trait OracleScalar: Copy + core::fmt::Debug {
     fn dtype() -> &'static str;
     fn is_scalar_value(value: &Value) -> bool;
@@ -227,73 +221,6 @@ pub fn run_unary_oracle_cases<T: OracleScalar>(cases: &[UnaryOracleCase<T>]) {
                     );
                     T::assert_close(actual_jvp, expected_jvps[index], atol, rtol, &label);
                     T::assert_close(actual_vjp, expected_vjps[index], atol, rtol, &label);
-                }
-            }
-        }
-    }
-}
-
-// Published complex oracle JVPs use the plain holomorphic derivative, while this
-// crate's ScalarAd forward convention applies the conjugated derivative. Keep
-// the oracle replay reverse-only and cover the complex forward convention in
-// repository-local formula tests.
-pub fn run_unary_oracle_reverse_cases_complex64(cases: &[UnaryReverseOracleCase<Complex64>]) {
-    for case in cases {
-        for (case_index, oracle) in successful_cases(case.op, <Complex64 as OracleScalar>::dtype())
-            .into_iter()
-            .enumerate()
-        {
-            let inputs =
-                scalar_values::<Complex64>(&oracle["inputs"]["a"]["data"], "inputs.a.data");
-            let probes = oracle["probes"]
-                .as_array()
-                .unwrap_or_else(|| panic!("expected probes array for {}", case.op));
-            let atol = scalar_f64(
-                &oracle["comparison"]["first_order"]["atol"],
-                "comparison.first_order.atol",
-            );
-            let rtol = scalar_f64(
-                &oracle["comparison"]["first_order"]["rtol"],
-                "comparison.first_order.rtol",
-            );
-
-            for (probe_index, probe) in probes.iter().enumerate() {
-                let cotangents = scalar_values::<Complex64>(
-                    &probe["cotangent"]["value"]["data"],
-                    &format!("probes[{probe_index}].cotangent.value.data"),
-                );
-                let expected_vjps = scalar_values::<Complex64>(
-                    &probe["pytorch_ref"]["vjp"]["a"]["data"],
-                    &format!("probes[{probe_index}].pytorch_ref.vjp.a.data"),
-                );
-
-                assert_eq!(
-                    inputs.len(),
-                    cotangents.len(),
-                    "{} case {case_index} probe {probe_index}: input and cotangent lengths differ",
-                    case.op
-                );
-                assert_eq!(
-                    inputs.len(),
-                    expected_vjps.len(),
-                    "{} case {case_index} probe {probe_index}: input and expected vjp lengths differ",
-                    case.op
-                );
-
-                for index in 0..inputs.len() {
-                    let result = (case.primal)(inputs[index]);
-                    let actual_vjp = (case.rrule)(inputs[index], result, cotangents[index]);
-                    let label = format!(
-                        "{} case {case_index} probe {probe_index} element {index}",
-                        case.op
-                    );
-                    <Complex64 as OracleScalar>::assert_close(
-                        actual_vjp,
-                        expected_vjps[index],
-                        atol,
-                        rtol,
-                        &label,
-                    );
                 }
             }
         }
