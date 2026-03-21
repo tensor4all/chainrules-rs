@@ -8,7 +8,7 @@ use chainrules::{
 };
 use num_complex::{Complex64, ComplexFloat};
 
-use common::assert_close_f64;
+use common::{assert_close_complex64, assert_close_f64};
 
 #[test]
 fn smooth_basis_helpers_are_reexported_from_chainrules() {
@@ -83,6 +83,16 @@ fn smooth_basis_frules_and_rrules_match_expected_derivatives() {
         1.0e-12,
         0.0,
         "pow.rrule.dexp",
+    );
+
+    let (pow_y, pow_dy) = pow_frule(2.0_f64, 3.0_f64, 1.0_f64, 0.5_f64);
+    assert_close_f64(pow_y, 8.0, 1.0e-12, 0.0, "pow.y.dexp");
+    assert_close_f64(
+        pow_dy,
+        12.0 + 0.5_f64 * 8.0_f64 * std::f64::consts::LN_2,
+        1.0e-12,
+        0.0,
+        "pow.dy.dexp",
     );
 
     let (sincos_y, sincos_dy) = sincos_frule(0.25_f64, 1.0_f64);
@@ -164,6 +174,28 @@ fn smooth_basis_frules_and_rrules_match_expected_derivatives() {
 }
 
 #[test]
+fn smooth_basis_complex_frules_match_expected_derivatives() {
+    let z = Complex64::new(0.25, -0.5);
+    let dz = Complex64::new(0.5, -0.25);
+
+    let (tan_y, tan_dy) = tan_frule(z, dz);
+    let tan_scale = (Complex64::new(1.0, 0.0) + tan_y * tan_y).conj();
+    assert_close_complex64(tan_y, z.tan(), 1.0e-12, 0.0, "tan.z");
+    assert_close_complex64(tan_dy, dz * tan_scale, 1.0e-12, 0.0, "tan.dz");
+
+    let (exp2_y, exp2_dy) = exp2_frule(z, dz);
+    let exp2_scale = (exp2_y * Complex64::new(std::f64::consts::LN_2, 0.0)).conj();
+    assert_close_complex64(exp2_y, z.exp2(), 1.0e-12, 0.0, "exp2.z");
+    assert_close_complex64(exp2_dy, dz * exp2_scale, 1.0e-12, 0.0, "exp2.dz");
+
+    let (log2_y, log2_dy) = log2_frule(z, dz);
+    let log2_scale =
+        (Complex64::new(1.0, 0.0) / (z * Complex64::new(std::f64::consts::LN_2, 0.0))).conj();
+    assert_close_complex64(log2_y, z.log2(), 1.0e-12, 0.0, "log2.z");
+    assert_close_complex64(log2_dy, dz * log2_scale, 1.0e-12, 0.0, "log2.dz");
+}
+
+#[test]
 fn pow_rules_handle_zero_and_negative_real_paths() {
     let (neg_y, neg_dy) = pow_frule(-2.0_f64, 3.0_f64, 1.0_f64, 0.0_f64);
     assert!((neg_y + 8.0).abs() < 1.0e-12);
@@ -181,13 +213,14 @@ fn pow_rules_handle_zero_and_negative_real_paths() {
 #[test]
 fn pow_rules_cover_complex_frule_and_rrule_paths() {
     let x = Complex64::new(1.0, 1.0);
-    let exponent = Complex64::new(2.0, 0.0);
+    let exponent = Complex64::new(2.0, 0.5);
     let dx = Complex64::new(0.5, -0.25);
-    let dexp = Complex64::new(0.0, 0.0);
+    let dexp = Complex64::new(0.1, -0.2);
 
     let (y, dy) = pow_frule(x, exponent, dx, dexp);
     let expected_y = x.powc(exponent);
-    let expected_dy = dx * (exponent * x.powc(exponent - Complex64::new(1.0, 0.0))).conj();
+    let expected_dy = dx * (exponent * x.powc(exponent - Complex64::new(1.0, 0.0))).conj()
+        + dexp * (expected_y * x.ln()).conj();
     assert!((y - expected_y).norm() < 1.0e-12);
     assert!((dy - expected_dy).norm() < 1.0e-12);
 

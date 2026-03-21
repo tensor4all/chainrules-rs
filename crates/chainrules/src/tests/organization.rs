@@ -18,6 +18,12 @@ fn chainrules_modules_stay_under_size_guideline() {
     );
     assert_line_count("../unary/mod.rs", include_str!("../unary/mod.rs"), 60);
     assert_line_count("../unary/basic.rs", include_str!("../unary/basic.rs"), 40);
+    assert_line_count("../unary/roots.rs", include_str!("../unary/roots.rs"), 100);
+    assert_line_count(
+        "../unary/complex_parts.rs",
+        include_str!("../unary/complex_parts.rs"),
+        210,
+    );
     assert_line_count(
         "../unary/exp_log.rs",
         include_str!("../unary/exp_log.rs"),

@@ -3,13 +3,17 @@ mod common;
 use chainrules::{
     acos_frule, acos_rrule, acosh_frule, acosh_rrule, asin_frule, asin_rrule, asinh_frule,
     asinh_rrule, atan_frule, atan_rrule, atanh_frule, atanh_rrule, cos_frule, cos_rrule,
-    cosh_frule, cosh_rrule, exp2_frule, exp2_rrule, exp_frule, exp_rrule, expm1_frule, expm1_rrule,
-    log1p_frule, log1p_rrule, log2_frule, log2_rrule, log_frule, log_rrule, sin_frule, sin_rrule,
-    sinh_frule, sinh_rrule, sqrt_frule, sqrt_rrule, tan_frule, tan_rrule, tanh_frule, tanh_rrule,
+    cosh_frule, cosh_rrule, exp2, exp2_frule, exp2_rrule, exp_frule, exp_rrule, expm1_frule,
+    expm1_rrule, log1p_frule, log1p_rrule, log2, log2_frule, log2_rrule, log_frule, log_rrule,
+    sin_frule, sin_rrule, sinh_frule, sinh_rrule, sqrt_frule, sqrt_rrule, tan, tan_frule,
+    tan_rrule, tanh_frule, tanh_rrule,
 };
 use num_complex::Complex64;
 
-use common::{run_unary_oracle_cases, run_unary_oracle_reverse_cases_complex64, UnaryOracleCase};
+use common::{
+    run_unary_oracle_cases, run_unary_oracle_reverse_cases_complex64, UnaryOracleCase,
+    UnaryReverseOracleCase,
+};
 
 #[test]
 fn published_float64_oracles_match_unary_rule_entrypoints() {
@@ -115,21 +119,21 @@ fn published_float64_oracles_match_unary_rule_entrypoints() {
 }
 
 #[test]
-fn published_complex128_oracles_match_unary_rule_entrypoints() {
-    let cases: [UnaryOracleCase<Complex64>; 3] = [
-        UnaryOracleCase {
+fn published_complex128_oracles_match_unary_rule_entrypoints_reverse_only() {
+    let cases = [
+        UnaryReverseOracleCase {
             op: "tan",
-            frule: tan_frule,
+            primal: tan,
             rrule: |_x: Complex64, result, cotangent| tan_rrule(result, cotangent),
         },
-        UnaryOracleCase {
+        UnaryReverseOracleCase {
             op: "exp2",
-            frule: exp2_frule,
+            primal: exp2,
             rrule: |_x: Complex64, result, cotangent| exp2_rrule(result, cotangent),
         },
-        UnaryOracleCase {
+        UnaryReverseOracleCase {
             op: "log2",
-            frule: log2_frule,
+            primal: log2,
             rrule: |x: Complex64, _result, cotangent| log2_rrule(x, cotangent),
         },
     ];
