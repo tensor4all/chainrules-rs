@@ -1,181 +1,138 @@
-use std::fs::File;
-use std::io::{BufRead, BufReader};
-use std::path::PathBuf;
+mod common;
 
 use chainrules::{
     acos_frule, acos_rrule, acosh_frule, acosh_rrule, asin_frule, asin_rrule, asinh_frule,
     asinh_rrule, atan_frule, atan_rrule, atanh_frule, atanh_rrule, cos_frule, cos_rrule,
-    cosh_frule, cosh_rrule, exp_frule, exp_rrule, expm1_frule, expm1_rrule, log1p_frule,
-    log1p_rrule, log_frule, log_rrule, sin_frule, sin_rrule, sinh_frule, sinh_rrule, sqrt_frule,
-    sqrt_rrule, tanh_frule, tanh_rrule,
+    cosh_frule, cosh_rrule, exp2_frule, exp2_rrule, exp_frule, exp_rrule, expm1_frule, expm1_rrule,
+    log1p_frule, log1p_rrule, log2_frule, log2_rrule, log_frule, log_rrule, sin_frule, sin_rrule,
+    sinh_frule, sinh_rrule, sqrt_frule, sqrt_rrule, tan_frule, tan_rrule, tanh_frule, tanh_rrule,
 };
-use serde_json::Value;
+use num_complex::Complex64;
 
-struct UnaryRuleCase {
-    op: &'static str,
-    frule: fn(f64, f64) -> (f64, f64),
-    rrule: fn(f64, f64, f64) -> f64,
-}
-
-fn oracle_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
-        .join("third_party")
-        .join("tensor-ad-oracles")
-}
-
-fn first_successful_float64_case(op: &str) -> Value {
-    let path = oracle_root().join("cases").join(op).join("identity.jsonl");
-    let file = File::open(&path).unwrap_or_else(|err| panic!("open {}: {err}", path.display()));
-    let reader = BufReader::new(file);
-
-    for line in reader.lines() {
-        let line = line.unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
-        let value: Value = serde_json::from_str(&line)
-            .unwrap_or_else(|err| panic!("parse {}: {err}", path.display()));
-        let dtype = value["dtype"].as_str();
-        let behavior = value["expected_behavior"].as_str();
-        if dtype == Some("float64") && behavior == Some("success") {
-            return value;
-        }
-    }
-
-    panic!("no successful float64 case found in {}", path.display());
-}
-
-fn scalar(value: &Value, path: &str) -> f64 {
-    value
-        .as_f64()
-        .unwrap_or_else(|| panic!("expected float64 at {path}, got {value}"))
-}
-
-fn assert_close(actual: f64, expected: f64, atol: f64, rtol: f64, label: &str) {
-    let tol = atol + rtol * expected.abs().max(actual.abs());
-    assert!(
-        (actual - expected).abs() <= tol,
-        "{label}: actual={actual}, expected={expected}, atol={atol}, rtol={rtol}",
-    );
-}
+use common::{run_unary_oracle_cases, UnaryOracleCase};
 
 #[test]
 fn published_float64_oracles_match_unary_rule_entrypoints() {
-    let cases = [
-        UnaryRuleCase {
+    let cases: [UnaryOracleCase<f64>; 19] = [
+        UnaryOracleCase {
             op: "sqrt",
             frule: sqrt_frule,
-            rrule: |x, _result, cotangent| sqrt_rrule(x.sqrt(), cotangent),
+            rrule: |x: f64, _result, cotangent| sqrt_rrule(x.sqrt(), cotangent),
         },
-        UnaryRuleCase {
+        UnaryOracleCase {
             op: "exp",
             frule: exp_frule,
-            rrule: |_x, result, cotangent| exp_rrule(result, cotangent),
+            rrule: |_x: f64, result, cotangent| exp_rrule(result, cotangent),
         },
-        UnaryRuleCase {
+        UnaryOracleCase {
             op: "expm1",
             frule: expm1_frule,
-            rrule: |_x, result, cotangent| expm1_rrule(result, cotangent),
+            rrule: |_x: f64, result, cotangent| expm1_rrule(result, cotangent),
         },
-        UnaryRuleCase {
+        UnaryOracleCase {
             op: "log",
             frule: log_frule,
-            rrule: |x, _result, cotangent| log_rrule(x, cotangent),
+            rrule: |x: f64, _result, cotangent| log_rrule(x, cotangent),
         },
-        UnaryRuleCase {
+        UnaryOracleCase {
             op: "log1p",
             frule: log1p_frule,
-            rrule: |x, _result, cotangent| log1p_rrule(x, cotangent),
+            rrule: |x: f64, _result, cotangent| log1p_rrule(x, cotangent),
         },
-        UnaryRuleCase {
+        UnaryOracleCase {
             op: "sin",
             frule: sin_frule,
-            rrule: |x, _result, cotangent| sin_rrule(x, cotangent),
+            rrule: |x: f64, _result, cotangent| sin_rrule(x, cotangent),
         },
-        UnaryRuleCase {
+        UnaryOracleCase {
             op: "cos",
             frule: cos_frule,
-            rrule: |x, _result, cotangent| cos_rrule(x, cotangent),
+            rrule: |x: f64, _result, cotangent| cos_rrule(x, cotangent),
         },
-        UnaryRuleCase {
+        UnaryOracleCase {
             op: "tanh",
             frule: tanh_frule,
-            rrule: |_x, result, cotangent| tanh_rrule(result, cotangent),
+            rrule: |_x: f64, result, cotangent| tanh_rrule(result, cotangent),
         },
-        UnaryRuleCase {
+        UnaryOracleCase {
             op: "asin",
             frule: asin_frule,
-            rrule: |x, _result, cotangent| asin_rrule(x, cotangent),
+            rrule: |x: f64, _result, cotangent| asin_rrule(x, cotangent),
         },
-        UnaryRuleCase {
+        UnaryOracleCase {
             op: "acos",
             frule: acos_frule,
-            rrule: |x, _result, cotangent| acos_rrule(x, cotangent),
+            rrule: |x: f64, _result, cotangent| acos_rrule(x, cotangent),
         },
-        UnaryRuleCase {
+        UnaryOracleCase {
             op: "atan",
             frule: atan_frule,
-            rrule: |x, _result, cotangent| atan_rrule(x, cotangent),
+            rrule: |x: f64, _result, cotangent| atan_rrule(x, cotangent),
         },
-        UnaryRuleCase {
+        UnaryOracleCase {
             op: "sinh",
             frule: sinh_frule,
-            rrule: |x, _result, cotangent| sinh_rrule(x, cotangent),
+            rrule: |x: f64, _result, cotangent| sinh_rrule(x, cotangent),
         },
-        UnaryRuleCase {
+        UnaryOracleCase {
             op: "cosh",
             frule: cosh_frule,
-            rrule: |x, _result, cotangent| cosh_rrule(x, cotangent),
+            rrule: |x: f64, _result, cotangent| cosh_rrule(x, cotangent),
         },
-        UnaryRuleCase {
+        UnaryOracleCase {
             op: "asinh",
             frule: asinh_frule,
-            rrule: |x, _result, cotangent| asinh_rrule(x, cotangent),
+            rrule: |x: f64, _result, cotangent| asinh_rrule(x, cotangent),
         },
-        UnaryRuleCase {
+        UnaryOracleCase {
             op: "acosh",
             frule: acosh_frule,
-            rrule: |x, _result, cotangent| acosh_rrule(x, cotangent),
+            rrule: |x: f64, _result, cotangent| acosh_rrule(x, cotangent),
         },
-        UnaryRuleCase {
+        UnaryOracleCase {
             op: "atanh",
             frule: atanh_frule,
-            rrule: |x, _result, cotangent| atanh_rrule(x, cotangent),
+            rrule: |x: f64, _result, cotangent| atanh_rrule(x, cotangent),
+        },
+        UnaryOracleCase {
+            op: "tan",
+            frule: tan_frule,
+            rrule: |_x: f64, result, cotangent| tan_rrule(result, cotangent),
+        },
+        UnaryOracleCase {
+            op: "exp2",
+            frule: exp2_frule,
+            rrule: |_x: f64, result, cotangent| exp2_rrule(result, cotangent),
+        },
+        UnaryOracleCase {
+            op: "log2",
+            frule: log2_frule,
+            rrule: |x: f64, _result, cotangent| log2_rrule(x, cotangent),
         },
     ];
 
-    for case in cases {
-        let oracle = first_successful_float64_case(case.op);
-        let input = scalar(&oracle["inputs"]["a"]["data"][0], "inputs.a.data[0]");
-        let probe = &oracle["probes"][0];
-        let tangent = scalar(
-            &probe["direction"]["a"]["data"][0],
-            "probes[0].direction.a.data[0]",
-        );
-        let cotangent = scalar(
-            &probe["cotangent"]["value"]["data"][0],
-            "probes[0].cotangent.value.data[0]",
-        );
-        let expected_jvp = scalar(
-            &probe["pytorch_ref"]["jvp"]["value"]["data"][0],
-            "probes[0].pytorch_ref.jvp.value.data[0]",
-        );
-        let expected_vjp = scalar(
-            &probe["pytorch_ref"]["vjp"]["a"]["data"][0],
-            "probes[0].pytorch_ref.vjp.a.data[0]",
-        );
-        let atol = scalar(
-            &oracle["comparison"]["first_order"]["atol"],
-            "comparison.first_order.atol",
-        );
-        let rtol = scalar(
-            &oracle["comparison"]["first_order"]["rtol"],
-            "comparison.first_order.rtol",
-        );
+    run_unary_oracle_cases(&cases);
+}
 
-        let (result, actual_jvp) = (case.frule)(input, tangent);
-        let actual_vjp = (case.rrule)(input, result, cotangent);
+#[test]
+fn published_complex128_oracles_match_unary_rule_entrypoints() {
+    let cases: [UnaryOracleCase<Complex64>; 3] = [
+        UnaryOracleCase {
+            op: "tan",
+            frule: tan_frule,
+            rrule: |_x: Complex64, result, cotangent| tan_rrule(result, cotangent),
+        },
+        UnaryOracleCase {
+            op: "exp2",
+            frule: exp2_frule,
+            rrule: |_x: Complex64, result, cotangent| exp2_rrule(result, cotangent),
+        },
+        UnaryOracleCase {
+            op: "log2",
+            frule: log2_frule,
+            rrule: |x: Complex64, _result, cotangent| log2_rrule(x, cotangent),
+        },
+    ];
 
-        assert_close(actual_jvp, expected_jvp, atol, rtol, case.op);
-        assert_close(actual_vjp, expected_vjp, atol, rtol, case.op);
-    }
+    run_unary_oracle_cases(&cases);
 }

@@ -23,7 +23,7 @@ pub fn sqrt<S: ScalarAd>(x: S) -> S {
 /// Forward rule for `sqrt`.
 pub fn sqrt_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     let y = x.sqrt();
-    let dy = dx / (S::from_i32(2) * y.conj());
+    let dy = dx / (S::from_i32(2) * y);
     (y, dy)
 }
 

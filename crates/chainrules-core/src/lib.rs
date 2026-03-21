@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 //! Core AD trait definitions (like Julia's ChainRulesCore.jl).
 //!
 //! This crate defines the interface for automatic differentiation without

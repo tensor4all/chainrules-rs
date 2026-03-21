@@ -9,8 +9,8 @@ specific AD engine.
 
 It contains:
 
-- `chainrules-core`: core AD traits and error types
-- `chainrules`: reusable scalar `frule`/`rrule` helpers and related utilities
+- `chainrules-core`: engine-independent AD protocol
+- `chainrules`: shared scalar rule basis
 
 It intentionally does **not** ship a tape, traced value type, or any other AD
 engine runtime. Those live in separate engine crates such as
@@ -25,9 +25,9 @@ engine runtime. Those live in separate engine crates such as
 
 ## Repository Layout
 
-- [`crates/chainrules-core`](crates/chainrules-core): `Differentiable`,
-  `ReverseRule`, `ForwardRule`, `AutodiffError`, and related core types
-- [`crates/chainrules`](crates/chainrules): scalar rule implementations such as
+- [`crates/chainrules-core`](crates/chainrules-core): protocol-only crate for
+  `Differentiable`, `ReverseRule`, `ForwardRule`, and `AutodiffError`
+- [`crates/chainrules`](crates/chainrules): shared scalar rules such as
   `exp`, `log1p`, `sin`, `atanh`, `powf`, and `atan2`
 - [`third_party/tensor-ad-oracles`](third_party/tensor-ad-oracles): vendored
   oracle data used to validate scalar rules against published references
@@ -48,7 +48,32 @@ engine that executes those rules over a tape. The boundary is deliberate:
 - `tidu-rs` can evolve independently as an engine
 - downstream tensor libraries can swap engines without rewriting scalar rules
 
+## Crate Roles
+
+`chainrules-core` does not provide function rules.
+`chainrules` provides stateless scalar `foo`, `foo_frule`, and `foo_rrule`
+helpers.
+
+`chainrules` is a landing zone for scalar rules ported or adapted from Julia's
+`ChainRules.jl` where they fit this repository boundary, but `chainrules-rs` is
+not a full port of `ChainRules.jl`.
+
+See the crate READMEs for the supported scalar function inventory and examples.
+
 ## Testing
+
+Scalar rules are checked in complementary ways:
+
+- formula and behavior tests in `crates/chainrules/tests/scalarops_tests.rs`
+- compatibility and edge-case tests such as
+  `crates/chainrules/tests/julia_compat_trig_tests.rs` and
+  `crates/chainrules/tests/complex_helper_tests.rs`
+- oracle replay tests in `crates/chainrules/tests/oracle_scalar_rules.rs`
+  against vendored published cases from `third_party/tensor-ad-oracles`,
+  including direct float64 replay and selected direct Complex64 replay for
+  `tan`, `exp2`, and `log2`; complex
+  forward-mode checks use the standard JVP convention on `C ~= R^2`, while
+  complex reverse-mode checks remain conjugate-Wirtinger for real-valued losses
 
 ```bash
 cargo test --workspace --release

@@ -1,17 +1,9 @@
 use chainrules::{
-    add, add_frule, add_rrule, conj, conj_frule, conj_rrule, div, div_frule, div_rrule,
-    handle_r_to_c_f32, handle_r_to_c_f64, mul, mul_frule, mul_rrule, powf, powf_frule, powf_rrule,
-    powi, powi_frule, powi_rrule, sqrt, sqrt_frule, sqrt_rrule, sub, sub_frule, sub_rrule,
+    add, add_frule, add_rrule, conj, conj_frule, conj_rrule, div, div_frule, div_rrule, mul,
+    mul_frule, mul_rrule, powf, powf_frule, powf_rrule, powi, powi_frule, powi_rrule, sqrt,
+    sqrt_frule, sqrt_rrule, sub, sub_frule, sub_rrule,
 };
 use num_complex::{Complex32, Complex64};
-
-#[test]
-fn handle_r_to_c_projects_real_part() {
-    let g32 = Complex32::new(1.25, -9.0);
-    let g64 = Complex64::new(-3.5, 2.0);
-    assert_eq!(handle_r_to_c_f32(g32), 1.25_f32);
-    assert_eq!(handle_r_to_c_f64(g64), -3.5_f64);
-}
 
 #[test]
 fn conj_rules_match_formula_complex64() {
@@ -128,7 +120,7 @@ fn mul_div_rules_match_formula_complex64() {
 
     let (mul_y, mul_dy) = mul_frule(x, y, dx, dy);
     assert!((mul_y - (x * y)).norm() < 1e-12);
-    let expected_mul_tangent = dx * y.conj() + dy * x.conj();
+    let expected_mul_tangent = dx * y + dy * x;
     assert!((mul_dy - expected_mul_tangent).norm() < 1e-12);
     let (mul_dx, mul_dy_rr) = mul_rrule(x, y, g);
     assert!((mul_dx - g * y.conj()).norm() < 1e-12);
@@ -136,8 +128,8 @@ fn mul_div_rules_match_formula_complex64() {
 
     let (div_y, div_dy) = div_frule(x, y, dx, dy);
     assert!((div_y - (x / y)).norm() < 1e-12);
-    let expected_div_tangent = dx * (Complex64::new(1.0, 0.0) / y).conj()
-        + dy * ((Complex64::new(-1.0, 0.0) * x) / (y * y)).conj();
+    let expected_div_tangent =
+        dx * (Complex64::new(1.0, 0.0) / y) + dy * ((Complex64::new(-1.0, 0.0) * x) / (y * y));
     assert!((div_dy - expected_div_tangent).norm() < 1e-12);
     let (div_dx, div_dy_rr) = div_rrule(x, y, g);
     assert!((div_dx - g * (Complex64::new(1.0, 0.0) / y).conj()).norm() < 1e-12);
@@ -155,11 +147,11 @@ fn powi_rules_match_formula_complex64() {
     let expected_y = x * x * x;
     assert!((y - expected_y).norm() < 1e-12);
 
-    let expected_scale = (Complex64::new(3.0, 0.0) * x.powi(2)).conj();
+    let expected_scale = Complex64::new(3.0, 0.0) * x.powi(2);
     assert!((dy - (dx * expected_scale)).norm() < 1e-12);
 
     let grad = powi_rrule(x, exponent, g);
-    assert!((grad - (g * expected_scale)).norm() < 1e-12);
+    assert!((grad - (g * expected_scale.conj())).norm() < 1e-12);
 }
 
 #[test]
@@ -204,16 +196,16 @@ fn complex_frules_and_rrules_cover_from_real_paths() {
     let g32 = Complex32::new(0.6, -0.2);
     let (_y32, dy32) = powf_frule(x32, 2.0_f32, dx32);
     let grad32 = powf_rrule(x32, 2.0_f32, g32);
-    let expected_scale32 = (Complex32::new(2.0, 0.0) * x32.powf(1.0_f32)).conj();
+    let expected_scale32 = Complex32::new(2.0, 0.0) * x32.powf(1.0_f32);
     assert!((dy32 - dx32 * expected_scale32).norm() < 1e-5);
-    assert!((grad32 - g32 * expected_scale32).norm() < 1e-5);
+    assert!((grad32 - g32 * expected_scale32.conj()).norm() < 1e-5);
 
     let x64 = Complex64::new(-0.8, 1.1);
     let dx64 = Complex64::new(0.9, -0.4);
     let g64 = Complex64::new(0.3, 0.2);
     let (_y64, dy64) = powi_frule(x64, 4, dx64);
     let grad64 = powi_rrule(x64, 4, g64);
-    let expected_scale64 = (Complex64::new(4.0, 0.0) * x64.powi(3)).conj();
+    let expected_scale64 = Complex64::new(4.0, 0.0) * x64.powi(3);
     assert!((dy64 - dx64 * expected_scale64).norm() < 1e-12);
-    assert!((grad64 - g64 * expected_scale64).norm() < 1e-12);
+    assert!((grad64 - g64 * expected_scale64.conj()).norm() < 1e-12);
 }
