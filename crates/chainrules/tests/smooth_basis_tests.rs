@@ -255,8 +255,8 @@ fn pow_rules_cover_complex_frule_and_rrule_paths() {
 
     let (y, dy) = pow_frule(x, exponent, dx, dexp);
     let expected_y = x.powc(exponent);
-    let expected_dy = dx * (exponent * x.powc(exponent - Complex64::new(1.0, 0.0))).conj()
-        + dexp * (expected_y * x.ln()).conj();
+    let expected_dy = dx * (exponent * x.powc(exponent - Complex64::new(1.0, 0.0)))
+        + dexp * (expected_y * x.ln());
     assert!((y - expected_y).norm() < 1.0e-12);
     assert!((dy - expected_dy).norm() < 1.0e-12);
 

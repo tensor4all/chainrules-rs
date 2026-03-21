@@ -122,7 +122,7 @@ pub fn mul<S: ScalarAd>(x: S, y: S) -> S {
 /// ```
 pub fn mul_frule<S: ScalarAd>(x: S, y: S, dx: S, dy: S) -> (S, S) {
     let primal = x * y;
-    let tangent = dx * y.conj() + dy * x.conj();
+    let tangent = dx * y + dy * x;
     (primal, tangent)
 }
 
@@ -175,8 +175,8 @@ pub fn div<S: ScalarAd>(x: S, y: S) -> S {
 pub fn div_frule<S: ScalarAd>(x: S, y: S, dx: S, dy: S) -> (S, S) {
     let primal = x / y;
     let inv_y = S::from_i32(1) / y;
-    let dfdx = inv_y.conj();
-    let dfdy = (-(x * inv_y * inv_y)).conj();
+    let dfdx = inv_y;
+    let dfdy = -(x * inv_y * inv_y);
     let tangent = dx * dfdx + dy * dfdy;
     (primal, tangent)
 }

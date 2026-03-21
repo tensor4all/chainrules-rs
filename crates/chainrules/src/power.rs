@@ -3,27 +3,17 @@ use num_traits::{Float, One, Zero};
 use crate::ScalarAd;
 
 /// Primal `powf`.
-///
-/// # Examples
-///
 /// ```rust
 /// use chainrules::powf;
-///
 /// assert_eq!(powf(2.0_f64, 3.0), 8.0);
 /// ```
 pub fn powf<S: ScalarAd>(x: S, exponent: S::Real) -> S {
     x.powf(exponent)
 }
 
-/// Forward rule for `powf` with fixed exponent.
-///
-/// Returns `(primal, tangent)`.
-///
-/// # Examples
-///
+/// Forward rule for `powf` with fixed exponent. Returns `(primal, tangent)`.
 /// ```rust
 /// use chainrules::powf_frule;
-///
 /// let (y, dy) = powf_frule(2.0_f64, 3.0, 1.0);
 /// assert_eq!(y, 8.0);
 /// assert_eq!(dy, 12.0);
@@ -33,7 +23,7 @@ pub fn powf_frule<S: ScalarAd>(x: S, exponent: S::Real, dx: S) -> (S, S) {
     let dy = if exponent == S::Real::zero() {
         S::from_real(S::Real::zero())
     } else {
-        dx * (S::from_real(exponent) * x.powf(exponent - S::Real::one())).conj()
+        dx * (S::from_real(exponent) * x.powf(exponent - S::Real::one()))
     };
     (y, dy)
 }
@@ -56,27 +46,17 @@ pub fn powf_rrule<S: ScalarAd>(x: S, exponent: S::Real, cotangent: S) -> S {
 }
 
 /// Primal `powi`.
-///
-/// # Examples
-///
 /// ```rust
 /// use chainrules::powi;
-///
 /// assert_eq!(powi(2.0_f64, 4), 16.0);
 /// ```
 pub fn powi<S: ScalarAd>(x: S, exponent: i32) -> S {
     x.powi(exponent)
 }
 
-/// Forward rule for `powi` with fixed integer exponent.
-///
-/// Returns `(primal, tangent)`.
-///
-/// # Examples
-///
+/// Forward rule for `powi` with fixed integer exponent. Returns `(primal, tangent)`.
 /// ```rust
 /// use chainrules::powi_frule;
-///
 /// let (y, dy) = powi_frule(2.0_f64, 4, 1.0);
 /// assert_eq!(y, 16.0);
 /// assert_eq!(dy, 32.0);
@@ -86,7 +66,7 @@ pub fn powi_frule<S: ScalarAd>(x: S, exponent: i32, dx: S) -> (S, S) {
     let dy = if exponent == 0 {
         S::from_i32(0)
     } else {
-        dx * (S::from_i32(exponent) * x.powi(exponent - 1)).conj()
+        dx * (S::from_i32(exponent) * x.powi(exponent - 1))
     };
     (y, dy)
 }
@@ -142,12 +122,25 @@ pub fn pow_frule<S: ScalarAd>(x: S, exponent: S, dx: S, dexponent: S) -> (S, S) 
     let dfdx = if dx == zero::<S>() {
         zero::<S>()
     } else {
-        dx * pow_x_scale(x, exponent)
+        dx * if exponent == zero::<S>() {
+            zero::<S>()
+        } else {
+            exponent * x.pow(exponent - S::from_i32(1))
+        }
     };
     let dfde = if dexponent == zero::<S>() {
         zero::<S>()
     } else {
-        dexponent * pow_exp_scale(x, exponent)
+        dexponent
+            * if x == zero::<S>() && exponent.imag() == S::Real::zero() {
+                if exponent.real() > S::Real::zero() {
+                    zero::<S>()
+                } else {
+                    nan::<S>()
+                }
+            } else {
+                x.pow(exponent) * x.ln()
+            }
     };
     (y, dfdx + dfde)
 }
