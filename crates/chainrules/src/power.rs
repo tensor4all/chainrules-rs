@@ -107,3 +107,60 @@ pub fn powi_rrule<S: ScalarAd>(x: S, exponent: i32, cotangent: S) -> S {
     }
     cotangent * (S::from_i32(exponent) * x.powi(exponent - 1)).conj()
 }
+
+/// Primal `pow(x, exponent)`.
+///
+/// # Examples
+///
+/// ```rust
+/// use chainrules::pow;
+///
+/// assert_eq!(pow(2.0_f64, 3.0_f64), 8.0);
+/// ```
+pub fn pow<S: ScalarAd>(x: S, exponent: S) -> S {
+    x.pow(exponent)
+}
+
+/// Forward rule for `pow(x, exponent)`.
+///
+/// # Examples
+///
+/// ```rust
+/// use chainrules::pow_frule;
+///
+/// let (y, dy) = pow_frule(2.0_f64, 3.0_f64, 1.0, 0.0);
+/// assert_eq!(y, 8.0);
+/// assert!((dy - 12.0).abs() < 1e-12);
+/// ```
+pub fn pow_frule<S: ScalarAd>(x: S, exponent: S, dx: S, dexponent: S) -> (S, S) {
+    let y = x.pow(exponent);
+    let dfdx = if exponent == S::from_i32(0) {
+        S::from_i32(0)
+    } else {
+        (exponent * x.pow(exponent - S::from_i32(1))).conj()
+    };
+    let dfde = (y * x.ln()).conj();
+    (y, dx * dfdx + dexponent * dfde)
+}
+
+/// Reverse rule for `pow(x, exponent)`.
+///
+/// # Examples
+///
+/// ```rust
+/// use chainrules::pow_rrule;
+///
+/// let (dx, dexp) = pow_rrule(2.0_f64, 3.0_f64, 1.0);
+/// assert_eq!(dx, 12.0);
+/// assert!((dexp - 8.0_f64 * std::f64::consts::LN_2).abs() < 1e-12);
+/// ```
+pub fn pow_rrule<S: ScalarAd>(x: S, exponent: S, cotangent: S) -> (S, S) {
+    let y = x.pow(exponent);
+    let dfdx = if exponent == S::from_i32(0) {
+        S::from_i32(0)
+    } else {
+        (exponent * x.pow(exponent - S::from_i32(1))).conj()
+    };
+    let dfde = (y * x.ln()).conj();
+    (cotangent * dfdx, cotangent * dfde)
+}

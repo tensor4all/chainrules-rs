@@ -1,5 +1,10 @@
+#[path = "trig_smooth.rs"]
+mod smooth_rules;
+
 use crate::unary::one;
 use crate::ScalarAd;
+
+pub use smooth_rules::{sincos, sincos_frule, sincos_rrule, tan, tan_frule, tan_rrule};
 
 /// Primal `sin`.
 pub fn sin<S: ScalarAd>(x: S) -> S {

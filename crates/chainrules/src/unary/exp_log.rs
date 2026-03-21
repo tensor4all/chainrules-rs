@@ -1,5 +1,13 @@
+#[path = "exp_log_smooth.rs"]
+mod smooth_rules;
+
 use crate::unary::one;
 use crate::ScalarAd;
+
+pub use smooth_rules::{
+    exp10, exp10_frule, exp10_rrule, exp2, exp2_frule, exp2_rrule, log10, log10_frule, log10_rrule,
+    log2, log2_frule, log2_rrule,
+};
 
 /// Primal `exp`.
 pub fn exp<S: ScalarAd>(x: S) -> S {
