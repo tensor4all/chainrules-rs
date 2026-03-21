@@ -54,9 +54,19 @@ engine that executes those rules over a tape. The boundary is deliberate:
 `chainrules` provides stateless scalar `foo`, `foo_frule`, and `foo_rrule`
 helpers.
 
+`chainrules` is a landing zone for scalar rules ported or adapted from Julia's
+`ChainRules.jl` where they fit this repository boundary, but `chainrules-rs` is
+not a full port of `ChainRules.jl`.
+
 See the crate READMEs for the supported scalar function inventory and examples.
 
 ## Testing
+
+Scalar rules are checked in two complementary ways:
+
+- formula and behavior tests in `crates/chainrules/tests/scalarops_tests.rs`
+- oracle replay tests in `crates/chainrules/tests/oracle_scalar_rules.rs`
+  against vendored published cases from `third_party/tensor-ad-oracles`
 
 ```bash
 cargo test --workspace --release

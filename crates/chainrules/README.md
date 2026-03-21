@@ -37,6 +37,16 @@ This crate is intended as a landing zone for scalar rules ported or adapted
 from Julia's `ChainRules.jl` where they fit this crate boundary, but it is not
 a full port of `ChainRules.jl`.
 
+## Validation
+
+Rules in this crate are not accepted on provenance alone. They are checked with
+repository-local tests:
+
+- `tests/scalarops_tests.rs` covers direct formulas, edge cases, and
+  real/complex behavior
+- `tests/oracle_scalar_rules.rs` replays vendored published oracle cases from
+  `../../third_party/tensor-ad-oracles`
+
 ## Examples
 
 ```rust
