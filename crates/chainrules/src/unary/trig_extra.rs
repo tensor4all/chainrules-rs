@@ -1,17 +1,88 @@
 use crate::binary::{mul_frule, mul_rrule};
 use crate::unary::{
-    cos, cos_frule, cos_rrule, inv, inv_frule, inv_rrule, sin, sin_frule, sin_rrule, sincos,
-    sincos_frule, sincos_rrule, tan, tan_frule, tan_rrule,
+    cos, cos_frule, cos_rrule, inv, inv_frule, inv_rrule, sin, sin_frule, sin_rrule, sincos, tan,
+    tan_frule, tan_rrule,
 };
 use crate::ScalarAd;
-use num_traits::FloatConst;
+use num_traits::{Float, FloatConst, Zero};
 
 fn pi<S: ScalarAd>() -> S {
     S::from_real(S::Real::PI())
 }
 
+fn real<R: Float>(value: f64) -> R {
+    match R::from(value) {
+        Some(value) => value,
+        None => unreachable!("float constant conversion should succeed"),
+    }
+}
+
 fn deg2rad<S: ScalarAd>() -> S {
-    pi::<S>() / S::from_i32(180)
+    pi::<S>() / S::from_real(real::<S::Real>(180.0))
+}
+
+fn real_input<S: ScalarAd>(x: S) -> Option<S::Real> {
+    if x.imag().is_zero() {
+        Some(x.real())
+    } else {
+        None
+    }
+}
+
+fn sinpi_real<R: Float + FloatConst>(x: R) -> R {
+    let two = real::<R>(2.0);
+    let reduced = x - (x / two).floor() * two;
+    let zero = real::<R>(0.0);
+    let one = real::<R>(1.0);
+    let half = real::<R>(0.5);
+    let three_half = real::<R>(1.5);
+    if reduced == zero || reduced == one {
+        zero
+    } else if reduced == half {
+        one
+    } else if reduced == three_half {
+        -one
+    } else {
+        (R::PI() * reduced).sin()
+    }
+}
+
+fn cospi_real<R: Float + FloatConst>(x: R) -> R {
+    let two = real::<R>(2.0);
+    let reduced = x - (x / two).floor() * two;
+    let zero = real::<R>(0.0);
+    let one = real::<R>(1.0);
+    let half = real::<R>(0.5);
+    let three_half = real::<R>(1.5);
+    if reduced == zero {
+        one
+    } else if reduced == one {
+        -one
+    } else if reduced == half || reduced == three_half {
+        zero
+    } else {
+        (R::PI() * reduced).cos()
+    }
+}
+
+fn tand_real<R: Float + FloatConst>(x: R) -> R {
+    let one_eighty = real::<R>(180.0);
+    let reduced = x - (x / one_eighty).floor() * one_eighty;
+    let zero = real::<R>(0.0);
+    let forty_five = real::<R>(45.0);
+    let ninety = real::<R>(90.0);
+    let one_thirty_five = real::<R>(135.0);
+    if reduced == zero {
+        zero
+    } else if reduced == forty_five {
+        real::<R>(1.0)
+    } else if reduced == ninety {
+        R::infinity()
+    } else if reduced == one_thirty_five {
+        real::<R>(-1.0)
+    } else {
+        (R::PI() * reduced / one_eighty).tan()
+    }
 }
 
 /// Primal `sec`.
@@ -105,34 +176,42 @@ pub fn cot_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
 /// assert!((sinpi(0.25_f64) - 0.25_f64.mul_add(std::f64::consts::PI, 0.0).sin()).abs() < 1e-12);
 /// ```
 pub fn sinpi<S: ScalarAd>(x: S) -> S {
-    sincospi(x).0
+    if let Some(x_real) = real_input(x) {
+        return S::from_real(sinpi_real(x_real));
+    }
+    sincos(pi::<S>() * x).0
 }
 
 /// Forward rule for `sinpi`.
 pub fn sinpi_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
-    let ((y, _), (dy, _)) = sincospi_frule(x, dx);
-    (y, dy)
+    let y = sinpi(x);
+    let scale = pi::<S>() * cospi(x);
+    (y, dx * scale.conj())
 }
 
 /// Reverse rule for `sinpi`.
 pub fn sinpi_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
-    sincospi_rrule(x, (cotangent, S::from_i32(0)))
+    cotangent * (pi::<S>() * cospi(x)).conj()
 }
 
 /// Primal `cospi`.
 pub fn cospi<S: ScalarAd>(x: S) -> S {
-    sincospi(x).1
+    if let Some(x_real) = real_input(x) {
+        return S::from_real(cospi_real(x_real));
+    }
+    sincos(pi::<S>() * x).1
 }
 
 /// Forward rule for `cospi`.
 pub fn cospi_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
-    let ((_, y), (_, dy)) = sincospi_frule(x, dx);
-    (y, dy)
+    let y = cospi(x);
+    let scale = -(pi::<S>() * sinpi(x));
+    (y, dx * scale.conj())
 }
 
 /// Reverse rule for `cospi`.
 pub fn cospi_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
-    sincospi_rrule(x, (S::from_i32(0), cotangent))
+    cotangent * (-(pi::<S>() * sinpi(x))).conj()
 }
 
 /// Primal `sincospi`.
@@ -147,85 +226,88 @@ pub fn cospi_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
 /// assert!((c - (std::f64::consts::FRAC_1_SQRT_2)).abs() < 1e-12);
 /// ```
 pub fn sincospi<S: ScalarAd>(x: S) -> (S, S) {
-    sincos(pi::<S>() * x)
+    (sinpi(x), cospi(x))
 }
 
 /// Forward rule for `sincospi`.
 pub fn sincospi_frule<S: ScalarAd>(x: S, dx: S) -> ((S, S), (S, S)) {
-    let scale = pi::<S>();
-    let (scaled_x, dscaled_x) = mul_frule(scale, x, S::from_i32(0), dx);
-    sincos_frule(scaled_x, dscaled_x)
+    let sin_x = sinpi(x);
+    let cos_x = cospi(x);
+    (
+        (sin_x, cos_x),
+        (
+            dx * (pi::<S>() * cos_x).conj(),
+            dx * (-(pi::<S>() * sin_x)).conj(),
+        ),
+    )
 }
 
 /// Reverse rule for `sincospi`.
 pub fn sincospi_rrule<S: ScalarAd>(x: S, cotangents: (S, S)) -> S {
-    let scale = pi::<S>();
-    let scaled_x = scale * x;
-    let dscaled_x = sincos_rrule(scaled_x, cotangents);
-    let (_, dx) = mul_rrule(scale, x, dscaled_x);
-    dx
+    let (cotangent_sin, cotangent_cos) = cotangents;
+    sinpi_rrule(x, cotangent_sin) + cospi_rrule(x, cotangent_cos)
 }
 
 /// Primal `sind`.
 pub fn sind<S: ScalarAd>(x: S) -> S {
-    sin(deg2rad::<S>() * x)
+    sinpi(x / S::from_real(real::<S::Real>(180.0)))
 }
 
 /// Forward rule for `sind`.
 pub fn sind_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
-    let scale = deg2rad::<S>();
+    let scale = S::from_real(real::<S::Real>(1.0 / 180.0));
     let (scaled_x, dscaled_x) = mul_frule(scale, x, S::from_i32(0), dx);
-    sin_frule(scaled_x, dscaled_x)
+    sinpi_frule(scaled_x, dscaled_x)
 }
 
 /// Reverse rule for `sind`.
 pub fn sind_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
-    let scale = deg2rad::<S>();
+    let scale = S::from_real(real::<S::Real>(1.0 / 180.0));
     let scaled_x = scale * x;
-    let dscaled_x = sin_rrule(scaled_x, cotangent);
+    let dscaled_x = sinpi_rrule(scaled_x, cotangent);
     let (_, dx) = mul_rrule(scale, x, dscaled_x);
     dx
 }
 
 /// Primal `cosd`.
 pub fn cosd<S: ScalarAd>(x: S) -> S {
-    cos(deg2rad::<S>() * x)
+    cospi(x / S::from_real(real::<S::Real>(180.0)))
 }
 
 /// Forward rule for `cosd`.
 pub fn cosd_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
-    let scale = deg2rad::<S>();
+    let scale = S::from_real(real::<S::Real>(1.0 / 180.0));
     let (scaled_x, dscaled_x) = mul_frule(scale, x, S::from_i32(0), dx);
-    cos_frule(scaled_x, dscaled_x)
+    cospi_frule(scaled_x, dscaled_x)
 }
 
 /// Reverse rule for `cosd`.
 pub fn cosd_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
-    let scale = deg2rad::<S>();
+    let scale = S::from_real(real::<S::Real>(1.0 / 180.0));
     let scaled_x = scale * x;
-    let dscaled_x = cos_rrule(scaled_x, cotangent);
+    let dscaled_x = cospi_rrule(scaled_x, cotangent);
     let (_, dx) = mul_rrule(scale, x, dscaled_x);
     dx
 }
 
 /// Primal `tand`.
 pub fn tand<S: ScalarAd>(x: S) -> S {
+    if let Some(x_real) = real_input(x) {
+        return S::from_real(tand_real(x_real));
+    }
     tan(deg2rad::<S>() * x)
 }
 
 /// Forward rule for `tand`.
 pub fn tand_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
-    let scale = deg2rad::<S>();
-    let (scaled_x, dscaled_x) = mul_frule(scale, x, S::from_i32(0), dx);
-    tan_frule(scaled_x, dscaled_x)
+    let y = tand(x);
+    let scale = deg2rad::<S>() * (S::from_i32(1) + y * y);
+    (y, dx * scale.conj())
 }
 
 /// Reverse rule for `tand`.
 pub fn tand_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
-    let scale = deg2rad::<S>();
-    let scaled_x = scale * x;
-    let y = tan(scaled_x);
-    let dscaled_x = tan_rrule(y, cotangent);
-    let (_, dx) = mul_rrule(scale, x, dscaled_x);
-    dx
+    let y = tand(x);
+    let scale = deg2rad::<S>() * (S::from_i32(1) + y * y);
+    cotangent * scale.conj()
 }
