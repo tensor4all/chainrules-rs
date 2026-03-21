@@ -58,7 +58,7 @@ fn smooth_basis_frules_and_rrules_match_expected_derivatives() {
     assert!((sincos_dy.0 - 0.25_f64.cos()).abs() < 1.0e-12);
     assert!((sincos_dy.1 + 0.25_f64.sin()).abs() < 1.0e-12);
     assert!(
-        (sincos_rrule(0.25_f64, 1.0_f64, 1.0_f64) - (0.25_f64.cos() - 0.25_f64.sin())).abs()
+        (sincos_rrule(0.25_f64, (1.0_f64, 1.0_f64)) - (0.25_f64.cos() - 0.25_f64.sin())).abs()
             < 1.0e-12
     );
 

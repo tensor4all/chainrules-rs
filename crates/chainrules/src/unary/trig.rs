@@ -1,10 +1,5 @@
-#[path = "trig_smooth.rs"]
-mod smooth_rules;
-
 use crate::unary::one;
 use crate::ScalarAd;
-
-pub use smooth_rules::{sincos, sincos_frule, sincos_rrule, tan, tan_frule, tan_rrule};
 
 /// Primal `sin`.
 pub fn sin<S: ScalarAd>(x: S) -> S {
@@ -91,4 +86,40 @@ pub fn atan_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
 /// Reverse rule for `atan`.
 pub fn atan_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
     cotangent * (one::<S>() / (one::<S>() + x * x)).conj()
+}
+
+#[doc = "Primal `tan`.\n\n# Examples\n```rust\nuse chainrules::tan;\n\nassert!((tan(0.5_f64) - 0.5_f64.tan()).abs() < 1e-12);\n```"]
+pub fn tan<S: ScalarAd>(x: S) -> S {
+    x.tan()
+}
+
+#[doc = "Forward rule for `tan`.\n\n# Examples\n```rust\nuse chainrules::tan_frule;\n\nlet (y, dy) = tan_frule(0.25_f64, 1.0);\nassert!((dy - (1.0 + 0.25_f64.tan().powi(2))).abs() < 1e-12);\n```"]
+pub fn tan_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
+    let y = x.tan();
+    (y, dx * (one::<S>() + y * y).conj())
+}
+
+#[doc = "Reverse rule for `tan`.\n\n# Examples\n```rust\nuse chainrules::tan_rrule;\n\nlet dy = tan_rrule(0.25_f64.tan(), 1.0);\nassert!((dy - (1.0 + 0.25_f64.tan().powi(2))).abs() < 1e-12);\n```"]
+pub fn tan_rrule<S: ScalarAd>(result: S, cotangent: S) -> S {
+    cotangent * (one::<S>() + result * result).conj()
+}
+
+#[doc = "Primal `sincos`.\n\n# Examples\n```rust\nuse chainrules::sincos;\n\nlet (s, c) = sincos(0.5_f64);\nassert!((s - 0.5_f64.sin()).abs() < 1e-12);\nassert!((c - 0.5_f64.cos()).abs() < 1e-12);\n```"]
+pub fn sincos<S: ScalarAd>(x: S) -> (S, S) {
+    (x.sin(), x.cos())
+}
+
+#[doc = "Forward rule for `sincos`.\n\n# Examples\n```rust\nuse chainrules::sincos_frule;\n\nlet ((s, c), (ds, dc)) = sincos_frule(0.25_f64, 1.0);\nassert!((ds - 0.25_f64.cos()).abs() < 1e-12);\nassert!((dc + 0.25_f64.sin()).abs() < 1e-12);\n```"]
+pub fn sincos_frule<S: ScalarAd>(x: S, dx: S) -> ((S, S), (S, S)) {
+    let sin_x = x.sin();
+    let cos_x = x.cos();
+    ((sin_x, cos_x), (dx * cos_x.conj(), dx * (-sin_x).conj()))
+}
+
+#[doc = "Reverse rule for `sincos`.\n\n# Examples\n```rust\nuse chainrules::sincos_rrule;\n\nlet dx = sincos_rrule(0.25_f64, (1.0, 1.0));\nassert!((dx - (0.25_f64.cos() - 0.25_f64.sin())).abs() < 1e-12);\n```"]
+pub fn sincos_rrule<S: ScalarAd>(x: S, cotangents: (S, S)) -> S {
+    let (cotangent_sin, cotangent_cos) = cotangents;
+    let sin_x = x.sin();
+    let cos_x = x.cos();
+    cotangent_sin * cos_x.conj() + cotangent_cos * (-sin_x).conj()
 }
