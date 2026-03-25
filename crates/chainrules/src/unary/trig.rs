@@ -13,6 +13,8 @@ pub fn sin_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
 }
 
 /// Reverse rule for `sin`.
+///
+/// Takes the original **input** `x`, not the result.
 pub fn sin_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
     cotangent * x.cos().conj()
 }
@@ -29,6 +31,8 @@ pub fn cos_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
 }
 
 /// Reverse rule for `cos`.
+///
+/// Takes the original **input** `x`, not the result.
 pub fn cos_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
     cotangent * (-x.sin()).conj()
 }

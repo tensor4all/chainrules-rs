@@ -28,6 +28,8 @@ pub fn sqrt_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
 }
 
 /// Reverse rule for `sqrt`.
+///
+/// Takes the forward **result** `sqrt(x)`, not the input `x`.
 pub fn sqrt_rrule<S: ScalarAd>(result: S, cotangent: S) -> S {
     cotangent / (S::from_i32(2) * result.conj())
 }
