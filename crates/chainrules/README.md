@@ -61,6 +61,32 @@ repository-local tests:
   in repository-local formula tests such as `tests/smooth_basis_tests.rs`
 - complex reverse-mode checks remain conjugate-Wirtinger for real-valued losses
 
+## rrule first-argument convention
+
+Some rrule helpers accept the **forward result** as their first argument
+(when the derivative can be expressed in terms of the output), while others
+accept the **input `x`** (when the derivative depends on the original
+input). The parameter name in each function signature tells you which:
+
+| First parameter | Functions |
+|-----------------|-----------|
+| `result` | `exp_rrule`, `expm1_rrule`, `exp2_rrule`, `exp10_rrule`, `sqrt_rrule`, `cbrt_rrule`, `inv_rrule`, `tanh_rrule`, `tan_rrule` |
+| `x` | `log_rrule`, `log1p_rrule`, `log2_rrule`, `log10_rrule`, `sin_rrule`, `cos_rrule`, `sinh_rrule`, `cosh_rrule`, all inverse-trig/hyperbolic rrules, `powf_rrule`, `powi_rrule`, `pow_rrule`, Julia-compat trig/hyperbolic rrules |
+| both inputs | `mul_rrule(x, y, …)`, `div_rrule(x, y, …)`, `atan2_rrule(y, x, …)`, `hypot_rrule(x, y, …)`, `min_rrule(x, y, …)`, `max_rrule(x, y, …)` |
+| cotangent only | `add_rrule`, `sub_rrule`, `conj_rrule`, `real_rrule`, `imag_rrule` |
+
+## Complex scalar convention
+
+For complex scalars (`Complex64`, `Complex32`):
+
+- **Forward-mode** (frule): uses the standard JVP convention on **C ≅ R²**
+- **Reverse-mode** (rrule): uses the **conjugate-Wirtinger** convention for
+  real-valued losses — gradients include `conj(df/dz)`
+
+For real scalars `conj` is the identity, so the convention is invisible.
+
+See the validation section below for how each convention is tested.
+
 ## Examples
 
 ```rust

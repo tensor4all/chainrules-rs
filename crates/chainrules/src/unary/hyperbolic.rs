@@ -14,6 +14,8 @@ pub fn tanh_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
 }
 
 /// Reverse rule for `tanh`.
+///
+/// Takes the forward **result** `tanh(x)`, not the input `x`.
 pub fn tanh_rrule<S: ScalarAd>(result: S, cotangent: S) -> S {
     cotangent * (one::<S>() - result * result).conj()
 }
@@ -30,6 +32,8 @@ pub fn sinh_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
 }
 
 /// Reverse rule for `sinh`.
+///
+/// Takes the original **input** `x`, not the result.
 pub fn sinh_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
     cotangent * x.cosh().conj()
 }
@@ -46,6 +50,8 @@ pub fn cosh_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
 }
 
 /// Reverse rule for `cosh`.
+///
+/// Takes the original **input** `x`, not the result.
 pub fn cosh_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
     cotangent * x.sinh().conj()
 }

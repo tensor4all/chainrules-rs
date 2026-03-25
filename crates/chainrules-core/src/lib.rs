@@ -21,7 +21,7 @@
 //!
 //! Implementing `Differentiable` for a custom type:
 //!
-//! ```ignore
+//! ```
 //! use chainrules_core::Differentiable;
 //!
 //! #[derive(Clone)]
@@ -61,11 +61,9 @@
 ///
 /// # Examples
 ///
-/// ```ignore
+/// ```
 /// use chainrules_core::Differentiable;
 ///
-/// // Tensor<f64> implements Differentiable with Tangent = Tensor<f64>
-/// // (defined in tenferro-tensor crate)
 /// fn example<V: Differentiable>(x: &V) {
 ///     let zero = x.zero_tangent();
 ///     let _acc = V::accumulate_tangent(zero.clone(), &x.zero_tangent());
@@ -257,6 +255,9 @@ pub enum SavePolicy {
 ///
 /// The type parameter `V` is the differentiable value type (e.g., `Tensor<f64>`).
 ///
+/// Implementors must be `Send + Sync` because rule objects may be stored on an
+/// AD tape that is shared across threads.
+///
 /// # Examples
 ///
 /// Custom reverse rule for scalar multiplication `output = a * b`:
@@ -333,6 +334,9 @@ pub trait ReverseRule<V: Differentiable>: Send + Sync {
 /// Named after Julia's ChainRules.jl convention: `frule` computes pushforward.
 ///
 /// The type parameter `V` is the differentiable value type (e.g., `Tensor<f64>`).
+///
+/// Implementors must be `Send + Sync` because rule objects may be stored on an
+/// AD tape that is shared across threads.
 ///
 /// # Examples
 ///
