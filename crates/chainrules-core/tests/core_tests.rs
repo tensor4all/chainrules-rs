@@ -287,7 +287,18 @@ fn reverse_rule_inputs() {
 #[test]
 fn reverse_rule_default_hvp_returns_error() {
     let rule = DummyRule;
-    let result = rule.pullback_with_tangents(&1.0, &1.0);
+    let result = rule.pullback_with_tangents(&1.0, &1.0, &|_| None);
+    assert!(result.is_err());
+    match result.unwrap_err() {
+        AutodiffError::HvpNotSupported => {}
+        other => panic!("expected HvpNotSupported, got {other:?}"),
+    }
+}
+
+#[test]
+fn reverse_rule_default_forward_tangents_returns_error() {
+    let rule = DummyRule;
+    let result = rule.forward_tangents(&|_| None);
     assert!(result.is_err());
     match result.unwrap_err() {
         AutodiffError::HvpNotSupported => {}
