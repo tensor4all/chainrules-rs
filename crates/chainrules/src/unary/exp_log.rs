@@ -17,6 +17,8 @@ pub fn exp_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     (y, dx * y)
 }
 /// Reverse rule for `exp`.
+///
+/// Takes the forward **result** `exp(x)`, not the input `x`.
 pub fn exp_rrule<S: ScalarAd>(result: S, cotangent: S) -> S {
     cotangent * result.conj()
 }
@@ -31,6 +33,8 @@ pub fn expm1_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     (y, dx * scale)
 }
 /// Reverse rule for `exp(x) - 1`.
+///
+/// Takes the forward **result** `expm1(x)`, not the input `x`.
 pub fn expm1_rrule<S: ScalarAd>(result: S, cotangent: S) -> S {
     cotangent * (result + one::<S>()).conj()
 }
@@ -71,6 +75,8 @@ pub fn log_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     (y, dy)
 }
 /// Reverse rule for `log`.
+///
+/// Takes the original **input** `x`, not the result.
 pub fn log_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
     cotangent * (one::<S>() / x).conj()
 }
@@ -85,6 +91,8 @@ pub fn log1p_frule<S: ScalarAd>(x: S, dx: S) -> (S, S) {
     (y, dy)
 }
 /// Reverse rule for `log(1 + x)`.
+///
+/// Takes the original **input** `x`, not the result.
 pub fn log1p_rrule<S: ScalarAd>(x: S, cotangent: S) -> S {
     cotangent * (one::<S>() / (one::<S>() + x)).conj()
 }

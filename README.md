@@ -16,6 +16,52 @@ It intentionally does **not** ship a tape, traced value type, or any other AD
 engine runtime. Those live in separate engine crates such as
 [`tidu-rs`](https://github.com/tensor4all/tidu-rs).
 
+## Getting Started
+
+Add `chainrules` (or `chainrules-core` alone if you only need the traits) as a
+git dependency:
+
+```toml
+[dependencies]
+chainrules = { git = "https://github.com/tensor4all/chainrules-rs" }
+
+# For complex scalar support, also add:
+num-complex = "0.4"
+```
+
+### Using scalar rules
+
+```rust
+use chainrules::{exp_frule, sin_rrule, powf_frule};
+
+// Forward rule: returns (primal, tangent)
+let (y, dy) = exp_frule(1.0_f64, 1.0);
+assert!((y - 1.0_f64.exp()).abs() < 1e-12);
+
+// Reverse rule: returns input cotangent
+let dx = sin_rrule(0.5_f64, 1.0);
+assert!((dx - 0.5_f64.cos()).abs() < 1e-12);
+```
+
+### Implementing custom AD types
+
+```rust
+use chainrules::{Differentiable, ReverseRule, AdResult, NodeId};
+
+#[derive(Clone)]
+struct MyVec(Vec<f64>);
+
+impl Differentiable for MyVec {
+    type Tangent = MyVec;
+    fn zero_tangent(&self) -> MyVec { MyVec(vec![0.0; self.0.len()]) }
+    fn accumulate_tangent(a: MyVec, b: &MyVec) -> MyVec {
+        MyVec(a.0.iter().zip(&b.0).map(|(x, y)| x + y).collect())
+    }
+    fn num_elements(&self) -> usize { self.0.len() }
+    fn seed_cotangent(&self) -> MyVec { MyVec(vec![1.0; self.0.len()]) }
+}
+```
+
 ## Design Goals
 
 - Keep differentiation rules reusable across projects and AD engines
