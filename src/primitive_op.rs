@@ -41,6 +41,7 @@ use crate::ADKey;
 /// }
 ///
 /// impl PrimitiveOp for AddOp {
+///     fn add() -> Self { AddOp }
 ///     fn linearize(
 ///         &self, _b: &mut FragmentBuilder<Self>,
 ///         _pi: &[GlobalValKey<Self>], _po: &[GlobalValKey<Self>],
@@ -60,6 +61,13 @@ pub trait PrimitiveOp: GraphOp
 where
     Self::InputKey: ADKey,
 {
+    /// Returns the addition operation used for cotangent accumulation
+    /// in `tidu::transpose`. When multiple cotangents flow to the same
+    /// `GlobalValKey`, transpose emits `Op::add()` nodes to sum them.
+    fn add() -> Self
+    where
+        Self: Sized;
+
     /// Emit the linear (JVP) rule for this primitive.
     ///
     /// Must be linear in tangent inputs. May reference primal inputs/outputs

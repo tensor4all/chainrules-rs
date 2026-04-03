@@ -48,6 +48,10 @@ impl GraphOp for MockOp {
 }
 
 impl PrimitiveOp for MockOp {
+    fn add() -> Self {
+        MockOp::Add
+    }
+
     fn linearize(
         &self,
         builder: &mut FragmentBuilder<Self>,
