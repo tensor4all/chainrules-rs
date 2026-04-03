@@ -1,7 +1,7 @@
 # tidu-rs v2 Implementation Spec
 
 **Date:** 2026-04-03
-**Status:** Approved
+**Status:** Approved (v2 — Dup removed, internal accumulation)
 **Upstream design:** `tensor4all-meta/docs/design-v2/tidu-design.md`
 
 ---
@@ -11,6 +11,9 @@
 Rewrite tidu-rs on `feat/v2` branch as a thin AD transform crate providing
 `differentiate` (JVP) and `transpose` (reverse linear flow), fully generic
 over `Op: PrimitiveOp`. No graph infrastructure, no concrete primitives.
+
+Fan-out accumulation is handled internally by `transpose` using
+`Op::add()` — no `Dup` primitive exists.
 
 ---
 
@@ -32,7 +35,9 @@ tidu-rs/  (feat/v2 branch)
 │   ├── differentiate.rs    # differentiate()
 │   └── transpose.rs        # transpose()
 └── tests/
-    └── scalar_ad_tests.rs  # end-to-end AD tests with ScalarOp
+    ├── common/
+    │   └── mod.rs           # ScalarOp, ScalarKey, f64 PrimitiveOp impl
+    └── scalar_ad_tests.rs   # end-to-end AD tests
 ```
 
 ---
@@ -48,11 +53,9 @@ use computegraph::types::LocalValId;
 pub struct LinearFragment<Op: GraphOp> {
     /// The fragment containing linear ops.
     pub fragment: Fragment<Op>,
-    /// (primal_input_key, tangent_local_val_id) pairs for each
-    /// differentiated input.
+    /// (primal_input_key, tangent_local_val_id) pairs.
     pub tangent_inputs: Vec<(Op::InputKey, LocalValId)>,
-    /// Tangent outputs — `None` means the output has no tangent
-    /// dependency on the requested inputs.
+    /// Tangent outputs — `None` means inactive.
     pub tangent_outputs: Vec<Option<LocalValId>>,
 }
 ```
@@ -62,11 +65,6 @@ pub struct LinearFragment<Op: GraphOp> {
 ## 2. differentiate (`differentiate.rs`)
 
 ```rust
-use computegraph::resolve::ResolvedView;
-use computegraph::types::GlobalValKey;
-use chainrules::{DiffPassId, PrimitiveOp};
-use crate::LinearFragment;
-
 pub fn differentiate<Op: PrimitiveOp>(
     view: &ResolvedView<Op>,
     outputs: &[GlobalValKey<Op>],
@@ -75,43 +73,51 @@ pub fn differentiate<Op: PrimitiveOp>(
 ) -> LinearFragment<Op>;
 ```
 
-`pass` is supplied by the caller (no global counter). Each call creates
-tangent input keys via `wrt_key.tangent_of(pass)`.
+`pass` is supplied by the caller.
 
 Algorithm:
 
-1. Walk the reachable logical DAG from `outputs` in topological order
-   (dependency-first).
-2. For each `wrt` key, create a tangent input in the builder via
-   `ADKey::tangent_of(pass)`. Record the `(primal_key, tangent_local_id)` pair.
-3. For each reachable op, call `Op::linearize(builder, primal_in, primal_out,
-   tangent_in)`. Primal values are referenced as `External(GlobalValKey)`.
-4. Inactive tangents propagate as `None` — no op is emitted.
-5. Collect tangent outputs for the requested `outputs`.
-6. Build the fragment and return `LinearFragment`.
+1. Collect reachable keys from `outputs` via the resolver (topological order).
+2. For each `wrt` key, create tangent input via `key.tangent_of(pass)`.
+   Store `(wrt_key, tangent_local_id)`.
+3. For each reachable op (in dependency order), resolve its input tangents:
+   - Input key in `wrt` set → corresponding tangent local id
+   - Derived key → tangent produced by a previous linearize call
+   - Otherwise → `None` (inactive)
+4. Call `Op::linearize(builder, primal_in_keys, primal_out_keys, tangent_in)`.
+5. Primal values referenced as `External(GlobalValKey)`.
+6. Collect tangent outputs for requested `outputs`.
+7. Build and return `LinearFragment`.
 
 ---
 
 ## 3. transpose (`transpose.rs`)
 
 ```rust
-use chainrules::PrimitiveOp;
-use crate::LinearFragment;
-
 pub fn transpose<Op: PrimitiveOp>(
     linear: &LinearFragment<Op>,
 ) -> LinearFragment<Op>;
 ```
 
-Algorithm:
+Algorithm (from design doc):
 
-1. Traverse the linear fragment's ops in **reverse** topological order.
-2. For each op, call `Op::transpose_rule(builder, cotangent_out, inputs, mode)`.
-3. Accumulate cotangent contributions to the same global key using
-   `Operand::add` (via an `Add` op or direct accumulation in the builder).
-4. The transposed fragment's inputs are cotangent seeds (one per original
-   tangent output that was `Some`), and its outputs are cotangent values
-   for each original tangent input.
+1. **Seed cotangent inputs**: for each non-None tangent output, create a
+   cotangent input in the builder. Store in `ct_env: HashMap<GlobalValKey, LocalValId>`.
+
+2. **Reverse topological traversal**: iterate `linear.fragment.ops()` in
+   reverse order. For each op:
+   - Look up cotangent for each output from `ct_env`
+   - Call `op.transpose_rule(builder, ct_outs, inputs, mode)`
+   - For each returned cotangent input:
+     - Resolve the corresponding input's `GlobalValKey`
+     - If key already in `ct_env`: emit `Op::add()` node to accumulate
+       (fan-out accumulation, `OpMode::Linear { active_mask: [true, true] }`)
+     - If key not in `ct_env`: insert directly
+
+3. **Collect cotangent outputs**: for each tangent input in the original
+   `LinearFragment`, look up its key in `ct_env`.
+
+4. Build and return the transposed `LinearFragment`.
 
 ---
 
@@ -132,44 +138,57 @@ chainrules = { git = "https://github.com/tensor4all/chainrules-rs.git", branch =
 
 ---
 
-## 5. Test Strategy
+## 5. Test Helpers (`tests/common/mod.rs`)
 
-Test file: `tests/scalar_ad_tests.rs`
+```rust
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+enum ScalarOp { Add, Mul, Exp, Neg }
 
-Define a test `ScalarOp` enum (`Add`, `Mul`, `Exp`, `Neg`, `Dup`) that
-implements both `GraphOp` and `PrimitiveOp`, plus a `ScalarKey` enum
-implementing `ADKey`.
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+enum ScalarKey {
+    User(String),
+    Tangent { of: Box<ScalarKey>, pass: DiffPassId },
+}
+```
 
-### Test cases
-
-1. **JVP of `x + x`**: `differentiate` → `materialize_merge` → `compile` →
-   `eval` with tangent seed `dx=1`. Expected: `dy = 2`.
-
-2. **JVP of `x * y`**: tangent w.r.t. `x` with `dx=1, y=3`. Expected:
-   `dy = y = 3`.
-
-3. **JVP of `exp(a*x)`**: tangent w.r.t. `x` with `dx=1, a=2, x=1`.
-   Expected: `dy = a * exp(a*x) = 2*exp(2)`.
-
-4. **VJP of `exp(a*x)`**: `differentiate` → `transpose` → full pipeline.
-   With `ct_y=1, a=2, x=1`. Expected: `ct_x = a * exp(a*x) = 2*exp(2)`.
-
-5. **2nd derivative (FoF) of `x^2`**: `Mul(x,x)` differentiated twice.
-   Expected: `d²y/dx² = 2`.
-
-6. **FoR (HVP) of `exp(a*x)`**: `differentiate` → `transpose` → `resolve`
-   → `differentiate` again → full pipeline. With unit seeds, `a=2, x=1`.
-   Expected: `d²y/dx² = a² * exp(a*x) = 4*exp(2)`.
-
-7. **Numerical gradient check**: compare VJP result against finite
-   differences for `exp(a*x)`.
+`ScalarOp` implements `GraphOp` + `PrimitiveOp`:
+- `Add::linearize`: `d(x+y) = dx+dy` (emit Add in linear mode, or pass through)
+- `Mul::linearize`: `d(x*y) = dx*y + x*dy` (emit Mul for each active, Add to combine)
+- `Exp::linearize`: `d(exp(x)) = exp(x)*dx` (emit Mul with External primal output)
+- `Neg::linearize`: `d(-x) = -dx` (emit Neg in linear mode)
+- `Add::transpose`: both inputs get the cotangent
+- `Mul::transpose`: per active input, emit Mul with the fixed input
+- `Exp::transpose`: not directly called (Exp is primal only)
+- `Neg::transpose`: emit Neg on cotangent
+- `ScalarOp::add() -> ScalarOp::Add`
 
 ---
 
-## 6. Not In Scope
+## 6. Test Cases
 
-- Concrete primitives beyond test helpers — tenferro-rs responsibility
-- Graph infrastructure — computegraph-rs responsibility
-- PrimitiveOp trait — chainrules-rs responsibility
-- Compilation cache, optimization — later phases
-- Cross-country mode, partial transpose — Phase 4
+1. **JVP `x + x`**: dy = 2·dx. Tests implicit fan-out in forward mode.
+
+2. **JVP `x * y`**: dy/dx = y. Two-input linearize.
+
+3. **JVP `exp(a*x)`**: dy/dx = a·exp(a·x). Chain of linearize calls.
+
+4. **VJP `exp(a*x)`**: ct_x = a·exp(a·x)·ct_y. Forward + transpose.
+
+5. **VJP `(x+x)*x`**: ct_x = 4x·ct_y. Fan-out accumulation in transpose
+   (the worked example from tidu-design.md).
+
+6. **FoF `x²`**: d²y/dx² = 2. `Mul(x,x)` differentiated twice.
+
+7. **FoR (HVP) `exp(a*x)`**: d²y/dx² = a²·exp(a·x). Forward-of-reverse.
+
+8. **Numerical gradient check**: VJP vs finite differences for `exp(a*x)`.
+
+---
+
+## 7. Not In Scope
+
+- Concrete primitives beyond test helpers
+- Graph infrastructure (computegraph-rs)
+- PrimitiveOp trait definition (chainrules-rs)
+- `Dup` primitive (removed from design)
+- Compilation cache, optimization
