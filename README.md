@@ -36,14 +36,23 @@ For the R-linear map `dz → a·dz`, the adjoint is `ct → conj(a)·ct`.
 This is why `transpose_rule` implementations emit `Conj` nodes when
 transposing through complex multiplication.
 
-For a real-valued loss L, the VJP cotangent satisfies:
+For a general function f: C → C, the VJP cotangent relates to Wirtinger
+derivatives as:
 
 ```text
-ct_z = 2·(∂L/∂z̄)      (= 2·conj(∂L/∂z))
+ct_z = ct_y · conj(∂f/∂z) + conj(ct_y) · (∂f/∂z̄)
 ```
 
-This differs from PyTorch, which returns `∂L/∂z̄` directly (factor of 2
-difference). The steepest-descent direction is the same in both conventions.
+Special cases:
+
+| Case | Result |
+|------|--------|
+| Real loss (L: C→R), ct_y=1 | `ct_z = 2·(∂L/∂z̄)` |
+| Holomorphic f, ∂f/∂z̄=0 | `ct_z = ct_y · conj(f'(z))` |
+| conj(z), ∂f/∂z=0 | `ct_z = conj(ct_y)` |
+
+For real-valued losses, this differs from PyTorch (which returns `∂L/∂z̄`
+directly) by a factor of 2. The steepest-descent direction is the same.
 
 ## Usage
 
