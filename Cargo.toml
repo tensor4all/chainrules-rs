@@ -1,16 +1,11 @@
-[workspace]
-resolver = "2"
-members = ["crates/chainrules-core", "crates/chainrules"]
-
-[workspace.package]
+[package]
+name = "chainrules"
 version = "0.1.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
-authors = ["Hiroshi Shinaoka <h.shinaoka@gmail.com>", "GiggleLiu <cacate0129@gmail.com>"]
 publish = false
 
-[workspace.dependencies]
-num-complex = "0.4"
-num-traits = "0.2"
-serde_json = "1"
-thiserror = "2"
+[dependencies]
+computegraph = { git = "https://github.com/tensor4all/computegraph-rs.git" }
+
+[workspace]
