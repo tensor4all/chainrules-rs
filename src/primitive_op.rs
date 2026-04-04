@@ -37,7 +37,6 @@ use crate::ADKey;
 ///     type InputKey = Key;
 ///     fn n_inputs(&self) -> usize { 2 }
 ///     fn n_outputs(&self) -> usize { 1 }
-///     fn eval(&self, _: &mut (), i: &[&f64]) -> Vec<f64> { vec![i[0] + i[1]] }
 /// }
 ///
 /// impl PrimitiveOp for AddOp {

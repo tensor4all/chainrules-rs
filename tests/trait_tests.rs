@@ -38,13 +38,6 @@ impl GraphOp for MockOp {
     fn n_outputs(&self) -> usize {
         1
     }
-
-    fn eval(&self, _ctx: &mut (), inputs: &[&f64]) -> Vec<f64> {
-        match self {
-            MockOp::Add => vec![inputs[0] + inputs[1]],
-            MockOp::Scale => vec![inputs[0] * inputs[1]],
-        }
-    }
 }
 
 impl PrimitiveOp for MockOp {
