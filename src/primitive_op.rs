@@ -40,17 +40,21 @@ use crate::ADKey;
 /// }
 ///
 /// impl PrimitiveOp for AddOp {
+///     type ADContext = ();
+///
 ///     fn add() -> Self { AddOp }
 ///     fn linearize(
 ///         &self, _b: &mut FragmentBuilder<Self>,
 ///         _pi: &[GlobalValKey<Self>], _po: &[GlobalValKey<Self>],
 ///         t: &[Option<LocalValId>],
+///         _ctx: &mut (),
 ///     ) -> Vec<Option<LocalValId>> {
 ///         vec![t[0].or(t[1])]
 ///     }
 ///     fn transpose_rule(
 ///         &self, _b: &mut FragmentBuilder<Self>,
 ///         ct: &[Option<LocalValId>], _i: &[ValRef<Self>], _m: &OpMode,
+///         _ctx: &mut (),
 ///     ) -> Vec<Option<LocalValId>> {
 ///         vec![ct[0], ct[0]]
 ///     }
@@ -60,6 +64,12 @@ pub trait PrimitiveOp: GraphOp
 where
     Self::InputKey: ADKey,
 {
+    /// Runtime AD context threaded through linearization and transpose.
+    ///
+    /// This can carry information such as concrete shapes or guard decisions
+    /// that influence how AD rules emit graph structure.
+    type ADContext: Default;
+
     /// Returns the addition operation used for cotangent accumulation
     /// in `tidu::transpose`. When multiple cotangents flow to the same
     /// `GlobalValKey`, transpose emits `Op::add()` nodes to sum them.
@@ -77,6 +87,7 @@ where
         primal_in: &[GlobalValKey<Self>],
         primal_out: &[GlobalValKey<Self>],
         tangent_in: &[Option<LocalValId>],
+        ctx: &mut Self::ADContext,
     ) -> Vec<Option<LocalValId>>
     where
         Self: Sized;
@@ -91,6 +102,7 @@ where
         cotangent_out: &[Option<LocalValId>],
         inputs: &[ValRef<Self>],
         mode: &OpMode,
+        ctx: &mut Self::ADContext,
     ) -> Vec<Option<LocalValId>>
     where
         Self: Sized;
