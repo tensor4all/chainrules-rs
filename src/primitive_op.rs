@@ -1,6 +1,6 @@
 use computegraph::fragment::FragmentBuilder;
 use computegraph::types::{GlobalValKey, LocalValId, OpMode, ValRef};
-use computegraph::GraphOp;
+use computegraph::{GraphOp, OpEmitter};
 
 use crate::ADKey;
 
@@ -9,9 +9,10 @@ use crate::ADKey;
 /// - `linearize` is called by `tidu::differentiate`
 /// - `transpose_rule` is called by `tidu::transpose`
 ///
-/// Both methods emit new ops into a `FragmentBuilder`. The downstream
-/// implementor (e.g. tenferro-rs) is responsible for ensuring closure:
-/// every op emitted must also implement `PrimitiveOp`.
+/// `linearize` emits new ops into a `FragmentBuilder`.
+/// `transpose_rule` emits new ops into an [`OpEmitter`].
+/// The downstream implementor (e.g. tenferro-rs) is responsible for
+/// ensuring closure: every op emitted must also implement `PrimitiveOp`.
 ///
 /// # Examples
 ///
@@ -19,7 +20,7 @@ use crate::ADKey;
 /// use chainrules::{ADKey, DiffPassId, PrimitiveOp};
 /// use computegraph::fragment::FragmentBuilder;
 /// use computegraph::types::{GlobalValKey, LocalValId, OpMode, ValRef};
-/// use computegraph::GraphOp;
+/// use computegraph::{GraphOp, OpEmitter};
 ///
 /// #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 /// enum Key { Base(String), Tan(Box<Key>, DiffPassId) }
@@ -49,7 +50,7 @@ use crate::ADKey;
 ///         vec![t[0].or(t[1])]
 ///     }
 ///     fn transpose_rule(
-///         &self, _b: &mut FragmentBuilder<Self>,
+///         &self, _e: &mut impl OpEmitter<Self>,
 ///         ct: &[Option<LocalValId>], _i: &[ValRef<Self>], _m: &OpMode,
 ///     ) -> Vec<Option<LocalValId>> {
 ///         vec![ct[0], ct[0]]
@@ -87,7 +88,7 @@ where
     /// Must only emit ops that themselves implement `PrimitiveOp`.
     fn transpose_rule(
         &self,
-        builder: &mut FragmentBuilder<Self>,
+        emitter: &mut impl OpEmitter<Self>,
         cotangent_out: &[Option<LocalValId>],
         inputs: &[ValRef<Self>],
         mode: &OpMode,

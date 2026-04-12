@@ -1,7 +1,7 @@
 use chainrules::{ADKey, DiffPassId, PrimitiveOp};
 use computegraph::fragment::FragmentBuilder;
 use computegraph::types::{GlobalValKey, OpMode, ValRef};
-use computegraph::{GraphOp, LocalValId};
+use computegraph::{GraphOp, LocalValId, OpEmitter};
 
 /// Mock input key implementing ADKey for testing.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -86,7 +86,7 @@ impl PrimitiveOp for MockOp {
 
     fn transpose_rule(
         &self,
-        builder: &mut FragmentBuilder<Self>,
+        emitter: &mut impl OpEmitter<Self>,
         cotangent_out: &[Option<LocalValId>],
         inputs: &[ValRef<Self>],
         _mode: &OpMode,
@@ -98,7 +98,7 @@ impl PrimitiveOp for MockOp {
             },
             MockOp::Scale => match &cotangent_out[0] {
                 Some(ct) => {
-                    let out = builder.add_op(
+                    let out = emitter.add_op(
                         MockOp::Scale,
                         vec![inputs[0].clone(), ValRef::Local(*ct)],
                         OpMode::Linear {

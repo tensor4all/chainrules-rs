@@ -6,6 +6,6 @@ license = "MIT OR Apache-2.0"
 publish = false
 
 [dependencies]
-computegraph = { git = "https://github.com/tensor4all/computegraph-rs.git", rev = "b361eac" }
+computegraph = { git = "https://github.com/tensor4all/computegraph-rs.git", rev = "111cd5da3c657b84b216063e7ef2c687d61be304" }
 
 [workspace]
