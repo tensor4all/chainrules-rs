@@ -1,6 +1,7 @@
 use chainrules::{ADKey, DiffPassId, PrimitiveOp};
 use computegraph::fragment::FragmentBuilder;
 use computegraph::types::{GlobalValKey, OpMode, ValRef};
+use computegraph::OpEmitter;
 use computegraph::{GraphOp, LocalValId};
 
 /// Mock input key implementing ADKey for testing.
@@ -89,7 +90,7 @@ impl PrimitiveOp for MockOp {
 
     fn transpose_rule(
         &self,
-        builder: &mut FragmentBuilder<Self>,
+        emitter: &mut impl OpEmitter<Self>,
         cotangent_out: &[Option<LocalValId>],
         inputs: &[ValRef<Self>],
         _mode: &OpMode,
@@ -102,7 +103,7 @@ impl PrimitiveOp for MockOp {
             },
             MockOp::Scale => match &cotangent_out[0] {
                 Some(ct) => {
-                    let out = builder.add_op(
+                    let out = emitter.add_op(
                         MockOp::Scale,
                         vec![inputs[0].clone(), ValRef::Local(*ct)],
                         OpMode::Linear {
@@ -338,7 +339,7 @@ impl PrimitiveOp for RecordingOp {
 
     fn transpose_rule(
         &self,
-        _builder: &mut FragmentBuilder<Self>,
+        _emitter: &mut impl OpEmitter<Self>,
         cotangent_out: &[Option<LocalValId>],
         _inputs: &[ValRef<Self>],
         _mode: &OpMode,
@@ -443,7 +444,7 @@ impl PrimitiveOp for BranchOp {
 
     fn transpose_rule(
         &self,
-        builder: &mut FragmentBuilder<Self>,
+        emitter: &mut impl OpEmitter<Self>,
         cotangent_out: &[Option<LocalValId>],
         _inputs: &[ValRef<Self>],
         _mode: &OpMode,
@@ -467,7 +468,7 @@ impl PrimitiveOp for BranchOp {
                                 vec![true, true],
                             )
                         };
-                        let out = builder.add_op(op, inputs, OpMode::Linear { active_mask });
+                        let out = emitter.add_op(op, inputs, OpMode::Linear { active_mask });
                         vec![Some(out[0])]
                     }
                     None => vec![None],
