@@ -5,8 +5,11 @@ AD trait definitions for the tensor4all v2 stack.
 This crate defines:
 
 - **`PrimitiveOp`** — extends `computegraph::GraphOp` with `add()`
-  (cotangent accumulation constructor), `linearize` (JVP rule), and
-  `transpose_rule` (reverse-mode rule)
+  (cotangent accumulation constructor), `linearize` / `try_linearize`
+  (JVP rule), and `transpose_rule` / `try_transpose_rule`
+  (reverse-mode rule)
+- **`ADRuleError`** — reports missing or unsupported AD rules without forcing
+  downstream AD transforms to panic
 - **`ADKey`** — trait on `GraphOp::InputKey` for generating tangent input
   keys during `differentiate`
 
