@@ -2,12 +2,12 @@ use computegraph::fragment::FragmentBuilder;
 use computegraph::types::{GlobalValKey, LocalValId, OpMode, ValRef};
 use computegraph::{GraphOp, OpEmitter};
 
-use crate::ADKey;
+use crate::{ADKey, ADRuleResult};
 
 /// Extends `GraphOp` with linearization and transpose rules for AD.
 ///
-/// - `linearize` is called by `tidu::differentiate`
-/// - `transpose_rule` is called by `tidu::transpose`
+/// - `try_linearize` is called by `tidu::differentiate`
+/// - `try_transpose_rule` is called by `tidu::transpose`
 ///
 /// Both methods emit new ops into a `FragmentBuilder`. The downstream
 /// implementor (e.g. tenferro-rs) is responsible for ensuring closure:
@@ -92,6 +92,26 @@ where
     where
         Self: Sized;
 
+    /// Fallible variant of [`PrimitiveOp::linearize`].
+    ///
+    /// Implementors that can encounter missing extension rules should override
+    /// this method and return [`crate::ADRuleError`] instead of panicking. The
+    /// default implementation preserves the infallible contract for existing
+    /// primitive sets.
+    fn try_linearize(
+        &self,
+        builder: &mut FragmentBuilder<Self>,
+        primal_in: &[GlobalValKey<Self>],
+        primal_out: &[GlobalValKey<Self>],
+        tangent_in: &[Option<LocalValId>],
+        ctx: &mut Self::ADContext,
+    ) -> ADRuleResult<Vec<Option<LocalValId>>>
+    where
+        Self: Sized,
+    {
+        Ok(self.linearize(builder, primal_in, primal_out, tangent_in, ctx))
+    }
+
     /// Emit the transpose rule for this linear primitive.
     ///
     /// Receives cotangent outputs and produces cotangent inputs.
@@ -109,4 +129,24 @@ where
     ) -> Vec<Option<LocalValId>>
     where
         Self: Sized;
+
+    /// Fallible variant of [`PrimitiveOp::transpose_rule`].
+    ///
+    /// Implementors that can encounter missing extension rules should override
+    /// this method and return [`crate::ADRuleError`] instead of panicking. The
+    /// default implementation preserves the infallible contract for existing
+    /// primitive sets.
+    fn try_transpose_rule(
+        &self,
+        emitter: &mut impl OpEmitter<Self>,
+        cotangent_out: &[Option<LocalValId>],
+        inputs: &[ValRef<Self>],
+        mode: &OpMode,
+        ctx: &mut Self::ADContext,
+    ) -> ADRuleResult<Vec<Option<LocalValId>>>
+    where
+        Self: Sized,
+    {
+        Ok(self.transpose_rule(emitter, cotangent_out, inputs, mode, ctx))
+    }
 }
