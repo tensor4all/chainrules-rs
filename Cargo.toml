@@ -9,3 +9,9 @@ publish = false
 computegraph = { git = "https://github.com/tensor4all/computegraph-rs.git", rev = "c20e8912560ef11166418bcea089126ef50443cc" }
 
 [workspace]
+
+[profile.dev]
+debug = 0
+
+[profile.test]
+debug = 0
