@@ -1,3 +1,9 @@
+> **Archived — retired.** Nothing in the tensor4all stack consumes this crate: tenferro,
+> tidu-rs and computegraph-rs all report zero `chainrules` dependencies, and the AD vocabulary
+> is declared in three places with tenferro's copy as the live one. The crate name was never
+> published to crates.io, so nothing needs unpublishing.
+> See chainrules-rs#17 for the evidence.
+
 # chainrules-rs
 
 AD trait definitions for the tensor4all v2 stack.
